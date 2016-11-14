@@ -23,8 +23,8 @@ char** ExtractRecipients(char* recipients_string, int* amount);
 typedef struct email{
     char* from;
     char* to;
-    char* recipients[20];
-    char* recipients_string[1000];
+    char** recipients;
+    char recipients_string[1000];
     char title[100];
     char text[2000];
     bool active;
@@ -143,8 +143,8 @@ int main(int argc, char* argv[]) {
                     strcpy(emails[curr_email].to, recipients[i]);
                     strcpy(emails[curr_email].title, title);
                     strcpy(emails[curr_email].text, text);
-                    strcpy(emails[curr_email].active, true);
                     strcpy(emails[curr_email].recipients_string, recipients_string);
+                    emails[curr_email].active = true;
                     emails[curr_email].recipients = recipients;
                 }
 
