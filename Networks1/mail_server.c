@@ -10,15 +10,6 @@
 #include <netdb.h>
 #include <errno.h>
 
-// TODO: remove later
-/*
-#include <winsock.h>
-#include <ws2tcpip.h>
-#include <io.h>
-*/
-
-
-
 #define BACKLOG 5
 #define GREETING "Winter is coming"
 #define FAIL_MSG "Failure"
@@ -26,11 +17,14 @@
 #define MAX_EMAIL_NUMBER 32000
 #define DEFAULT_LISTEN_PORT 6423
 
-bool authenticate(char* usersFile, int socket, char** user);
+bool Authenticate(char* usersFile, int socket, char** user);
+char** ExtractRecipients(char* recipients_string, int* amount);
 
 typedef struct email{
     char* from;
     char* to;
+    char* recipients[20];
+    char* recipients_string[1000];
     char title[100];
     char text[2000];
     bool active;
@@ -77,10 +71,13 @@ int main(int argc, char* argv[]) {
     Email* emails = (Email *)malloc(sizeof(Email)*MAX_EMAIL_NUMBER);
     int curr_email = 0;
     int i, msg_id;
+    int recipients_amount = 0;
 
-    char recepients[1024];
+    char recipients_string[1024];
     char title[1024];
     char text[1024];
+
+    char** recipients;
 
     while(true){
         printf("accepting...\r\n");
@@ -91,7 +88,7 @@ int main(int argc, char* argv[]) {
         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
 
         printf("Authenticating...\r\n");
-        if (!authenticate(usersFile, newSock, &user)){
+        if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
             send(newSock, (const char *)&buffer, sizeof(buffer), 0);
             close(newSock);
@@ -111,17 +108,15 @@ int main(int argc, char* argv[]) {
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")){
                 for (i = 1; i < curr_email; i++){
-                    // TODO: decide what to do with many recepients
-                    // TODO: check if user is a recepient
-                    if (emails[i].active){
+                    if (emails[i].active && strcmp(emails[i].to, user) == 0){
                         sprintf(buffer, "%d;%s;%s", i, emails[i].from, emails[i].title);
                         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
                     }
                 }
             } else if (strcmp(nextCommand,"GET_MAIL")){
                 msg_id = atoi(commandParam);
-                if (emails[msg_id].active){
-                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].from, emails[msg_id].to,
+                if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
+                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].from, emails[msg_id].recipients_string,
                             emails[msg_id].title, emails[msg_id].text);
                     send(newSock, (const char *)&bigBuffer, sizeof(bigBuffer), 0);
                 } else {
@@ -129,18 +124,29 @@ int main(int argc, char* argv[]) {
                     send(newSock, (const char *)&buffer, sizeof(buffer), 0);
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")){
-                emails[atoi(commandParam)].active = false;
-                strcpy(buffer, SUCCESS_MSG);
+                if (strcmp(user, emails[atoi(commandParam)].to) == 0){
+                    emails[atoi(commandParam)].active = false;
+                    strcpy(buffer, SUCCESS_MSG);
+                } else {
+                    strcpy(buffer, FAIL_MSG);
+                }
                 send(newSock, (const char *)&buffer, sizeof(buffer), 0);
             } else if (strcmp(nextCommand,"COMPOSE")){
-                curr_email++;
-                strcpy(emails[curr_email].from, user);
+                sscanf(commandParam, "%s;%s;%s", recipients_string, title, text);
 
-                sscanf(commandParam, "%s;%s;%s", recepients, title, text);
-                strcpy(emails[curr_email].to, recepients);
-                strcpy(emails[curr_email].title, title);
-                strcpy(emails[curr_email].text, text);
-                strcpy(emails[curr_email].active, true);
+                recipients = ExtractRecipients(recipients_string, &recipients_amount);
+
+                // foreach recipient create new email
+                for (i = 0; i < recipients_amount; i++){
+                    curr_email++;
+                    strcpy(emails[curr_email].from, user);
+                    strcpy(emails[curr_email].to, recipients[i]);
+                    strcpy(emails[curr_email].title, title);
+                    strcpy(emails[curr_email].text, text);
+                    strcpy(emails[curr_email].active, true);
+                    strcpy(emails[curr_email].recipients_string, recipients_string);
+                    emails[curr_email].recipients = recipients;
+                }
 
                 strcpy(buffer, SUCCESS_MSG);
                 send(newSock, (const char *)&buffer, sizeof(buffer), 0);
@@ -154,7 +160,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-bool authenticate(char* usersFile, int socket, char** user){
+bool Authenticate(char* usersFile, int socket, char** user){
     size_t len = 1024;
     char buffer[1024];
     char checkUsername[1024];
@@ -178,4 +184,32 @@ bool authenticate(char* usersFile, int socket, char** user){
     }
     return false;
 
+}
+
+char** ExtractRecipients(char* recipients_string, int* amount){
+    char** recipients = (char**)malloc(sizeof(char*)*20);
+    int i, j, cnt;
+    char curr_recipient[1024];
+    cnt = 0;
+
+    for (i = 0; i < strlen(recipients_string); i++){
+        if (recipients_string[i] == ','){
+            curr_recipient[j] = '\0';
+            recipients[cnt] = (char*)malloc(j);
+            strcpy(recipients[cnt],curr_recipient);
+            cnt++;
+            j=0;
+            continue;
+        }
+        curr_recipient[j] = recipients_string[i];
+        j++;
+    }
+
+    curr_recipient[j] = '\0';
+    recipients[cnt] = (char*)malloc(j);
+    strcpy(recipients[cnt],curr_recipient);
+    cnt++;
+    *amount = cnt;
+
+    return recipients;
 }
