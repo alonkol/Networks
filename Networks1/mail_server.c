@@ -2,9 +2,13 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <sys/socket.h>
-
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <errno.h>
 
 // TODO: remove later
 /*
@@ -13,25 +17,31 @@
 #include <io.h>
 */
 
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
+
 
 #define BACKLOG 5
 #define GREETING "Winter is coming"
-#define AUTH_FAIL_MSG "Failure"
-#define AUTH_SUCCESS_MSG "Success"
+#define FAIL_MSG "Failure"
+#define SUCCESS_MSG "Success"
+#define MAX_EMAIL_NUMBER 32000
+#define DEFAULT_LISTEN_PORT 6423
 
-bool authenticate(char* usersFile, int socket);
+bool authenticate(char* usersFile, int socket, char** user);
+
+typedef struct email{
+    char* from;
+    char* to;
+    char title[100];
+    char text[2000];
+    bool active;
+} Email;
 
 int main(int argc, char* argv[]) {
     if (argc != 2 && argc != 3){
         // TODO: error
     }
 
-    u_short portToListen = 6423;
+    u_short portToListen = DEFAULT_LISTEN_PORT;
 
     char* usersFile = argv[1];
     if (argc == 3){
@@ -53,14 +63,24 @@ int main(int argc, char* argv[]) {
 
     printf("binding...\r\n");
     bind(mainSocket, (struct sockaddr*) &my_addr, addrlen);
-            // TODO: error
+    // TODO: error
 
     printf("listening...\r\n");
     listen(mainSocket, BACKLOG);
 
     int newSock;
     char buffer[1024];
+    char bigBuffer[10*1024];
     char nextCommand[1024];
+    char commandParam[1024];
+    char *user = (char *)malloc(1024);
+    Email* emails = (Email *)malloc(sizeof(Email)*MAX_EMAIL_NUMBER);
+    int curr_email = 0;
+    int i, msg_id;
+
+    char recepients[1024];
+    char title[1024];
+    char text[1024];
 
     while(true){
         printf("accepting...\r\n");
@@ -71,8 +91,8 @@ int main(int argc, char* argv[]) {
         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
 
         printf("Authenticating...\r\n");
-        if (!authenticate(usersFile, newSock)){
-            strcpy(buffer, AUTH_FAIL_MSG);
+        if (!authenticate(usersFile, newSock, &user)){
+            strcpy(buffer, FAIL_MSG);
             send(newSock, (const char *)&buffer, sizeof(buffer), 0);
             close(newSock);
             continue;
@@ -80,16 +100,51 @@ int main(int argc, char* argv[]) {
         printf("Authenticated successfully...\r\n");
 
         // send authentication successful message to client
-        strcpy(buffer, AUTH_SUCCESS_MSG);
+        strcpy(buffer, SUCCESS_MSG);
         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
 
         // connected, accept commands
 
         recv(newSock, (char*)&buffer, sizeof(buffer), 0);
-        sscanf(buffer, "%s", nextCommand);
+        sscanf(buffer, "%s %s", nextCommand, commandParam);
 
         while(strcmp(nextCommand,"QUIT") != 0){
-            // TODO: Handle commands
+            if (strcmp(nextCommand,"SHOW_INBOX")){
+                for (i = 1; i < curr_email; i++){
+                    // TODO: decide what to do with many recepients
+                    // TODO: check if user is a recepient
+                    if (emails[i].active){
+                        sprintf(buffer, "%d;%s;%s", i, emails[i].from, emails[i].title);
+                        send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                    }
+                }
+            } else if (strcmp(nextCommand,"GET_MAIL")){
+                msg_id = atoi(commandParam);
+                if (emails[msg_id].active){
+                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].from, emails[msg_id].to,
+                            emails[msg_id].title, emails[msg_id].text);
+                    send(newSock, (const char *)&bigBuffer, sizeof(bigBuffer), 0);
+                } else {
+                    strcpy(buffer, FAIL_MSG);
+                    send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                }
+            } else if (strcmp(nextCommand,"DELETE_MAIL")){
+                emails[atoi(commandParam)].active = false;
+                strcpy(buffer, SUCCESS_MSG);
+                send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+            } else if (strcmp(nextCommand,"COMPOSE")){
+                curr_email++;
+                strcpy(emails[curr_email].from, user);
+
+                sscanf(commandParam, "%s;%s;%s", recepients, title, text);
+                strcpy(emails[curr_email].to, recepients);
+                strcpy(emails[curr_email].title, title);
+                strcpy(emails[curr_email].text, text);
+                strcpy(emails[curr_email].active, true);
+
+                strcpy(buffer, SUCCESS_MSG);
+                send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+            }
 
             recv(newSock, (char*)&buffer, sizeof(buffer), 0);
             sscanf(buffer, "%s", nextCommand);
@@ -99,7 +154,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-bool authenticate(char* usersFile, int socket){
+bool authenticate(char* usersFile, int socket, char** user){
     size_t len = 1024;
     char buffer[1024];
     char checkUsername[1024];
@@ -110,6 +165,7 @@ bool authenticate(char* usersFile, int socket){
     // receive authentication data from client
     recv(socket, buffer, len, 0);
     sscanf(buffer, "%s;%s", username, password);
+    strcpy(*user, username);
 
     // read form file
     FILE* fp = fopen(usersFile, "r");
