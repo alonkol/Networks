@@ -21,14 +21,18 @@ bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
 typedef struct email{
-    char* from;
     char* to;
+    EmailContent* content;
+    bool active;
+} Email;
+
+typedef struct email_content{
+    char* from;
     char** recipients;
     char recipients_string[1000];
     char title[100];
     char text[2000];
-    bool active;
-} Email;
+} EmailContent;
 
 int main(int argc, char* argv[]) {
     if (argc != 2 && argc != 3){
@@ -78,6 +82,7 @@ int main(int argc, char* argv[]) {
     char text[1024];
 
     char** recipients;
+    EmailContent* emailContent;
 
     while(true){
         printf("accepting...\r\n");
@@ -109,15 +114,15 @@ int main(int argc, char* argv[]) {
             if (strcmp(nextCommand,"SHOW_INBOX")){
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
-                        sprintf(buffer, "%d;%s;%s", i, emails[i].from, emails[i].title);
+                        sprintf(buffer, "%d;%s;%s", i, emails[i].content->from, emails[i].content->title);
                         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
                     }
                 }
             } else if (strcmp(nextCommand,"GET_MAIL")){
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
-                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].from, emails[msg_id].recipients_string,
-                            emails[msg_id].title, emails[msg_id].text);
+                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
+                            emails[msg_id].content->title, emails[msg_id].content->text);
                     send(newSock, (const char *)&bigBuffer, sizeof(bigBuffer), 0);
                 } else {
                     strcpy(buffer, FAIL_MSG);
@@ -136,16 +141,20 @@ int main(int argc, char* argv[]) {
 
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
-                // foreach recipient create new email
+                emailContent = (EmailContent*)malloc(sizeof(EmailContent));
+
+                strcpy(emailContent->from, user);
+                strcpy(emailContent->title, title);
+                strcpy(emailContent->text, text);
+                strcpy(emailContent->recipients_string, recipients_string);
+                emailContent->recipients = recipients;
+
+                // foreach recipient create new email instance
                 for (i = 0; i < recipients_amount; i++){
                     curr_email++;
-                    strcpy(emails[curr_email].from, user);
                     strcpy(emails[curr_email].to, recipients[i]);
-                    strcpy(emails[curr_email].title, title);
-                    strcpy(emails[curr_email].text, text);
-                    strcpy(emails[curr_email].recipients_string, recipients_string);
+                    emails[curr_email].content = emailContent;
                     emails[curr_email].active = true;
-                    emails[curr_email].recipients = recipients;
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
