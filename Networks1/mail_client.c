@@ -10,38 +10,43 @@
 #include <netdb.h>
 #include <errno.h>
 
-#define DEFAULT_PORT 6423
+#define DEFAULT_PORT "6423"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
 
+
 int main(int argc, char* argv[]) {
-    if (argc != 2 && argc != 3){
+    if (argc < 2 || argc > 4){
         // TODO: error
     }
-    unsigned short portToConnect;
+    char portToConnect[1024];
     char hostname[1024];
 
-    if (argc==3){
-        sscanf(argv[2], "[%s [%hu]]", hostname, &portToConnect);
+    if (argc==4){
+        strcpy(hostname, argv[2]);
+        strcpy(portToConnect,argv[3]);
+    }else if (argc==3){
+        strcpy(portToConnect,DEFAULT_PORT);
+        strcpy(hostname, argv[2]);
     }else{
-        portToConnect = DEFAULT_PORT;
+        strcpy(portToConnect,DEFAULT_PORT);
         strcpy(hostname, DEFAULT_HOST);
     }
 
+    struct addrinfo hints, *res;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    getaddrinfo(hostname, portToConnect, &hints, &res );
+
     printf("creating socket...\r\n");
-    int sock = socket(PF_INET, SOCK_STREAM, 0);
+    int sock = socket(res->ai_family, res->ai_socktype, res ->ai_protocol);
 
-    printf("assigning variables for connecting...\r\n");
-    struct sockaddr_in *dest_addr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
-
-    dest_addr->sin_family = AF_INET;
-    dest_addr->sin_port = htons(portToConnect);
-    dest_addr->sin_addr.s_addr = htonl(hostname);
-
-
-
-    printf("connecting...\r\n");
-    connect(sock, (struct sockaddr*) &dest_addr,sizeof(struct sockaddr));
+    printf("biding...\r\n");
+    bind(sock,res->ai_addr,res->ai_addrlen);
 
     printf("Reciving greeting...\r\n");
 
@@ -68,6 +73,8 @@ int main(int argc, char* argv[]) {
     if (strcmp(buffer,SUCCESS_MSG)!=0){
         printf("Connection failed....\r\n Exiting....\r\n");
         close(sock);
+        freeaddrinfo(res);
+        return 1;
     }
     printf("Connection established....\r\n");
 
@@ -112,10 +119,9 @@ int main(int argc, char* argv[]) {
     }
 
     close(sock);
-    free(dest_addr);
+    freeaddrinfo(res);
 }
 
-//TODO if argc not good
 // TODO if failMSG return
 // TODO remove prints we dont need
 
