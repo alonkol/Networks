@@ -54,14 +54,14 @@ int main(int argc, char* argv[]) {
     char bigBuffer[10*1024];
 
     recv(sock, (char*)&buffer, sizeof(buffer), 0);
-    printf("%s",buffer);
+    printf("greeting: %s\r\n",buffer);
 
     char user[1024];
     char password[1024];
 
     printf("Waiting for username and password\r\n");
-    scanf("User: %s", user);
-    scanf("Password: %s", password);
+    scanf("User: %s\n", user);
+    scanf("Password: %s\n", password);
 
     printf("Sending username and password...\r\n");
     sscanf(buffer, "%s;%s", user, password);

@@ -118,10 +118,8 @@ int main(int argc, char* argv[]) {
                         send(newSock, (const char *)&buffer, sizeof(buffer), 0);
                     }
                 }
-                //////////////////////////////ADDED///////////////////////////////////
                 sprintf(buffer, "END");
                 send(newSock, (const char *)&buffer, sizeof(buffer), 0);
-                //////////////////////////////END OF ADDED///////////////////////////////////
             } else if (strcmp(nextCommand,"GET_MAIL")){
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
@@ -141,10 +139,8 @@ int main(int argc, char* argv[]) {
                 }
                 send(newSock, (const char *)&buffer, sizeof(buffer), 0);
             } else if (strcmp(nextCommand,"COMPOSE")){
-                //////////////////////////////ADDED///////////////////////////////////
                 recv(newSock, (char*)&buffer, sizeof(buffer), 0);
                 sscanf(buffer, "%s", commandParam);
-                //////////////////////////////END OF ADDED///////////////////////////////////
                 sscanf(commandParam, "%s;%s;%s", recipients_string, title, text);
 
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
