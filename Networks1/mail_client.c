@@ -12,6 +12,7 @@
 
 #define DEFAULT_PORT 6423
 #define DEFAULT_HOST "localhost"
+#define SUCCESS_MSG "Success"
 
 int main(int argc, char* argv[]) {
     if (argc != 2 && argc != 3){
@@ -33,9 +34,11 @@ int main(int argc, char* argv[]) {
     printf("assigning variables for connecting...\r\n");
     struct sockaddr_in *dest_addr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
 
-    dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(portToConnect);
-    dest_addr.sin_addr = htonl(hostname);
+    dest_addr->sin_family = AF_INET;
+    dest_addr->sin_port = htons(portToConnect);
+    dest_addr->sin_addr.s_addr = htonl(hostname);
+
+
 
     printf("connecting...\r\n");
     connect(sock, (struct sockaddr*) &dest_addr,sizeof(struct sockaddr));
@@ -47,7 +50,6 @@ int main(int argc, char* argv[]) {
 
     recv(sock, (char*)&buffer, sizeof(buffer), 0);
     printf("%s",buffer);
-    free(hostname);
 
     char user[1024];
     char password[1024];
@@ -74,7 +76,7 @@ int main(int argc, char* argv[]) {
     char subject[1024];
     char content[1024];
 
-    while(true)){
+    while(true){
         printf("Enter Command:\r\n");
         scanf("%s",buffer);
         send(sock, (const char *)&buffer, sizeof(buffer), 0);

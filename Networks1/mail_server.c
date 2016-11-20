@@ -20,12 +20,6 @@
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
-typedef struct email{
-    char* to;
-    EmailContent* content;
-    bool active;
-} Email;
-
 typedef struct email_content{
     char* from;
     char** recipients;
@@ -33,6 +27,12 @@ typedef struct email_content{
     char title[100];
     char text[2000];
 } EmailContent;
+
+typedef struct email{
+    char* to;
+    EmailContent* content;
+    bool active;
+} Email;
 
 int main(int argc, char* argv[]) {
     if (argc != 2 && argc != 3){
