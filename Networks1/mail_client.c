@@ -91,20 +91,13 @@ int main(int argc, char* argv[])
     int sock = socket(res->ai_family, res->ai_socktype, res ->ai_protocol);
     int errcheck;
 
-    // pretty sure client doesn't need binding...
-    /*
-    printf("binding...\r\n");
-    errcheck = bind(sock,res->ai_addr,res->ai_addrlen);
+    printf("connecting...\r\n");
+    errcheck = connect(sock, (struct sockaddr*) &res,sizeof(struct sockaddr));
     if (errcheck == -1){
-        printf("Error in function: bind()\r\n"
+        printf("Error in function: connect()\r\n"
                        "With error: %s\r\n", strerror(errno));
         return -1;
     }
-    */
-
-    printf("connecting...\r\n");
-    connect(sock, (struct sockaddr*) &res,sizeof(struct sockaddr));
-
 
     printf("Receiving greeting...\r\n");
 
@@ -121,7 +114,7 @@ int main(int argc, char* argv[])
     printf("Waiting for username and password\r\n");
     scanf("User: %s\n", user);
     scanf("Password: %s\n", password);
-    print("%s %s\n", user,password);
+    printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
     sscanf(buffer, "%s;%s", user, password);

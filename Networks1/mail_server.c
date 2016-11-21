@@ -101,18 +101,18 @@ int main(int argc, char* argv[]) {
 
     printf("assigning variables for binding...\r\n");
 
-    struct sockaddr_in *my_addr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+    struct sockaddr_in my_addr;
 
     socklen_t addrlen = sizeof(my_addr);
 
-    my_addr->sin_family = AF_INET;
-    my_addr->sin_addr.s_addr = htonl(INADDR_ANY);
-    my_addr->sin_port = htons(portToListen);
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    my_addr.sin_port = htons(portToListen);
 
 
 
     printf("binding...\r\n");
-    errcheck = bind(mainSocket, (struct sockaddr*) &my_addr, addrlen);
+    errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, addrlen);
     if (errcheck == -1){
         printf("Error in function: bind()\r\n"
                        "With error: %s\r\n", strerror(errno));
