@@ -36,8 +36,12 @@ typedef struct email{
 
 int main(int argc, char* argv[]) {
     if (argc != 2 && argc != 3){
-        // TODO: error
+        printf("Invalid input. please use the following format: \r\n"
+                       "mail_server <users file> <optional:port>\r\n");
+        return -1;
     }
+
+    int errcheck;
 
     unsigned short portToListen = DEFAULT_LISTEN_PORT;
 
@@ -48,6 +52,11 @@ int main(int argc, char* argv[]) {
 
     printf("creating socket...\r\n");
     int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mainSocket == -1){
+        printf("Error in function: socket()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
 
     printf("assigning variables for binding...\r\n");
 
@@ -59,12 +68,24 @@ int main(int argc, char* argv[]) {
     my_addr->sin_addr.s_addr = htonl(INADDR_ANY);
     my_addr->sin_port = htons(portToListen);
 
+
+
     printf("binding...\r\n");
-    bind(mainSocket, (struct sockaddr*) &my_addr, addrlen);
-    // TODO: error
+    errcheck = bind(mainSocket, (struct sockaddr*) &my_addr, addrlen);
+    if (errcheck == -1){
+        printf("Error in function: bind()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
 
     printf("listening...\r\n");
-    listen(mainSocket, BACKLOG);
+    errcheck = listen(mainSocket, BACKLOG);
+    if (errcheck == -1){
+        printf("Error in function: listen()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
+
 
     int newSock;
     char buffer[1024];
@@ -226,3 +247,5 @@ char** ExtractRecipients(char* recipients_string, int* amount){
 
     return recipients;
 }
+
+// TODO: add error handling for every send() & recv()

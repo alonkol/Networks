@@ -44,11 +44,19 @@ int main(int argc, char* argv[]) {
 
     printf("creating socket...\r\n");
     int sock = socket(res->ai_family, res->ai_socktype, res ->ai_protocol);
+    int errcheck;
 
-    printf("biding...\r\n");
-    bind(sock,res->ai_addr,res->ai_addrlen);
+    printf("binding...\r\n");
+    errcheck = bind(sock,res->ai_addr,res->ai_addrlen);
+    if (errcheck == -1){
+        printf("Error in function: bind()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
 
-    printf("Reciving greeting...\r\n");
+    // TODO: add connect() here
+
+    printf("Receiving greeting...\r\n");
 
     char buffer[1024];
     char bigBuffer[10*1024];
@@ -124,4 +132,5 @@ int main(int argc, char* argv[]) {
 
 // TODO if failMSG return
 // TODO remove prints we dont need
+// TODO: add error handling for every send() & recv()
 
