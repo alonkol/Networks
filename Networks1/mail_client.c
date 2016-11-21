@@ -1,4 +1,3 @@
-#include <sys/types.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <sys/socket.h>
@@ -9,26 +8,72 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+//#include "utils.h"
 
 #define DEFAULT_PORT "6423"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
 
+int sendall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've sent */
+    int bytesleft = *len; /* how many we have left to send */
+    int n;
+    while(total < *len)
+    {
+        n = send(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
 
-int main(int argc, char* argv[]) {
-    if (argc < 2 || argc > 4){
+int recvall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've recieved */
+    int bytesleft = *len; /* how many we have left to recieve */
+    int n;
+    while(total < *len)
+    {
+        n = recv(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
+
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2 || argc > 4)
+    {
         // TODO: error
     }
     char portToConnect[1024];
     char hostname[1024];
 
-    if (argc==4){
+    if (argc==4)
+    {
         strcpy(hostname, argv[2]);
         strcpy(portToConnect,argv[3]);
-    }else if (argc==3){
+    }
+    else if (argc==3)
+    {
         strcpy(portToConnect,DEFAULT_PORT);
         strcpy(hostname, argv[2]);
-    }else{
+    }
+    else
+    {
         strcpy(portToConnect,DEFAULT_PORT);
         strcpy(hostname, DEFAULT_HOST);
     }
@@ -46,6 +91,8 @@ int main(int argc, char* argv[]) {
     int sock = socket(res->ai_family, res->ai_socktype, res ->ai_protocol);
     int errcheck;
 
+    // pretty sure client doesn't need binding...
+    /*
     printf("binding...\r\n");
     errcheck = bind(sock,res->ai_addr,res->ai_addrlen);
     if (errcheck == -1){
@@ -53,15 +100,19 @@ int main(int argc, char* argv[]) {
                        "With error: %s\r\n", strerror(errno));
         return -1;
     }
+    */
 
-    // TODO: add connect() here
+    printf("connecting...\r\n");
+    connect(sock, (struct sockaddr*) &res,sizeof(struct sockaddr));
+
 
     printf("Receiving greeting...\r\n");
 
     char buffer[1024];
+    int buffer_size = sizeof(buffer);
     char bigBuffer[10*1024];
 
-    recv(sock, (char*)&buffer, sizeof(buffer), 0);
+    recvall(sock, (char*)&buffer, &buffer_size);
     printf("greeting: %s\r\n",buffer);
 
     char user[1024];
@@ -70,15 +121,17 @@ int main(int argc, char* argv[]) {
     printf("Waiting for username and password\r\n");
     scanf("User: %s\n", user);
     scanf("Password: %s\n", password);
+    print("%s %s\n", user,password);
 
-    printf("Sending username and password...\r\n");
+    printf("sending username and password...\r\n");
     sscanf(buffer, "%s;%s", user, password);
-    send(sock, (const char *)&buffer, sizeof(buffer), 0);
+    sendall(sock, (char *)&buffer, &buffer_size);
 
     printf("Waiting for server to react....\r\n");
-    recv(sock, (char*)&buffer, sizeof(buffer), 0);
+    recvall(sock, (char*)&buffer, &buffer_size);
 
-    if (strcmp(buffer,SUCCESS_MSG)!=0){
+    if (strcmp(buffer,SUCCESS_MSG)!=0)
+    {
         printf("Connection failed....\r\n Exiting....\r\n");
         close(sock);
         freeaddrinfo(res);
@@ -91,37 +144,45 @@ int main(int argc, char* argv[]) {
     char subject[1024];
     char content[1024];
 
-    while(true){
+    while(true)
+    {
         printf("Enter Command:\r\n");
         scanf("%s",buffer);
-        send(sock, (const char *)&buffer, sizeof(buffer), 0);
+        sendall(sock, (char *)&buffer, &buffer_size);
 
-        if (strcmp(buffer,"SHOW_INBOX")){
-            recv(sock, (char*)&buffer, sizeof(buffer), 0);
-            while (strcmp(buffer,"END")!=0){
+        if (strcmp(buffer,"SHOW_INBOX"))
+        {
+            recvall(sock, (char*)&buffer, &buffer_size);
+            while (strcmp(buffer,"END")!=0)
+            {
                 printf("%s", buffer);
-                recv(sock, (char*)&buffer, sizeof(buffer), 0);
+                recvall(sock, (char*)&buffer, &buffer_size);
             }
         }
-        else if (strcmp(buffer,"GET_MAIL")){
-            recv(sock, (char*)&bigBuffer, sizeof(bigBuffer), 0);
+        else if (strcmp(buffer,"GET_MAIL"))
+        {
+            int bigbuffersize= sizeof(bigBuffer);
+            recvall(sock, (char*)&bigBuffer, &bigbuffersize);
             sscanf("%s;%s;%s;%s",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
-        else if (strcmp(buffer,"DELETE_MAIL")){
-            recv(sock, (char*)&buffer, sizeof(buffer), 0);
+        else if (strcmp(buffer,"DELETE_MAIL"))
+        {
+            recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
         }
-        else if (strcmp(buffer,"Compose")){
+        else if (strcmp(buffer,"Compose"))
+        {
             scanf("To: %s", to);
             scanf("Subject: %s", subject);
             scanf("Text: %s", content);
             sprintf(bigBuffer,"%s;%s;%s", to,subject,content);
-            send(sock, (const char *)&bigBuffer, sizeof(bigBuffer), 0);
-            recv(sock, (char*)&buffer, sizeof(buffer), 0);
+            sendall(sock, (char *)&buffer, &buffer_size);
+            recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
         }
-        else if (strcmp(buffer,"Quit")){
+        else if (strcmp(buffer,"Quit"))
+        {
             break;
         }
     }
@@ -132,5 +193,5 @@ int main(int argc, char* argv[]) {
 
 // TODO if failMSG return
 // TODO remove prints we dont need
-// TODO: add error handling for every send() & recv()
+// TODO: add error handling for every sendall() & recvall()
 

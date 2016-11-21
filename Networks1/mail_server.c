@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+//#include "utils.h"
 
 #define BACKLOG 5
 #define GREETING "Winter is coming"
@@ -16,6 +17,45 @@
 #define SUCCESS_MSG "Success"
 #define MAX_EMAIL_NUMBER 32000
 #define DEFAULT_LISTEN_PORT 6423
+
+int sendall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've sent */
+    int bytesleft = *len; /* how many we have left to send */
+    int n;
+    while(total < *len)
+    {
+        n = send(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
+
+int recvall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've recieved */
+    int bytesleft = *len; /* how many we have left to recieve */
+    int n;
+    while(total < *len)
+    {
+        n = recv(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
+
 
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
@@ -44,6 +84,7 @@ int main(int argc, char* argv[]) {
     int errcheck;
 
     unsigned short portToListen = DEFAULT_LISTEN_PORT;
+
 
     char* usersFile = argv[1];
     if (argc == 3){
@@ -92,6 +133,7 @@ int main(int argc, char* argv[]) {
     char bigBuffer[10*1024];
     char nextCommand[1024];
     char commandParam[1024];
+    int buffersize = sizeof(buffer);
     char *user = (char *)malloc(1024);
     Email* emails = (Email *)malloc(sizeof(Email)*MAX_EMAIL_NUMBER);
     int curr_email = 0;
@@ -111,24 +153,24 @@ int main(int argc, char* argv[]) {
         printf("Accepted new client\r\n");
 
         strcpy(buffer, GREETING);
-        send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+        sendall(newSock, (char *)&buffer, &buffersize);
 
         printf("Authenticating...\r\n");
         if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
-            send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+            sendall(newSock, (char *)&buffer, &buffersize);
             close(newSock);
             continue;
         }
         printf("Authenticated successfully...\r\n");
 
-        // send authentication successful message to client
+        // sendall authentication successful message to client
         strcpy(buffer, SUCCESS_MSG);
-        send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+        sendall(newSock, (char *)&buffer, &buffersize);
 
         // connected, accept commands
 
-        recv(newSock, (char*)&buffer, sizeof(buffer), 0);
+        recvall(newSock, (char*)&buffer, &buffersize);
         sscanf(buffer, "%s %s", nextCommand, commandParam);
 
         while(strcmp(nextCommand,"QUIT") != 0){
@@ -136,20 +178,21 @@ int main(int argc, char* argv[]) {
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
                         sprintf(buffer, "%d;%s;%s", i, emails[i].content->from, emails[i].content->title);
-                        send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                        sendall(newSock, (char *)&buffer, &buffersize);
                     }
                 }
                 sprintf(buffer, "END");
-                send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                sendall(newSock, (char *)&buffer, &buffersize);
             } else if (strcmp(nextCommand,"GET_MAIL")){
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
-                    send(newSock, (const char *)&bigBuffer, sizeof(bigBuffer), 0);
+                    int bigbuffersize = sizeof(bigBuffer);
+                    sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
                 } else {
                     strcpy(buffer, FAIL_MSG);
-                    send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                    sendall(newSock, (char *)&buffer, &buffersize);
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")){
                 if (strcmp(user, emails[atoi(commandParam)].to) == 0){
@@ -158,9 +201,9 @@ int main(int argc, char* argv[]) {
                 } else {
                     strcpy(buffer, FAIL_MSG);
                 }
-                send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                sendall(newSock, (char *)&buffer, &buffersize);
             } else if (strcmp(nextCommand,"COMPOSE")){
-                recv(newSock, (char*)&buffer, sizeof(buffer), 0);
+                recvall(newSock, (char*)&buffer, &buffersize);
                 sscanf(buffer, "%s", commandParam);
                 sscanf(commandParam, "%s;%s;%s", recipients_string, title, text);
 
@@ -183,10 +226,10 @@ int main(int argc, char* argv[]) {
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
-                send(newSock, (const char *)&buffer, sizeof(buffer), 0);
+                sendall(newSock, (char *)&buffer, &buffersize);
             }
 
-            recv(newSock, (char*)&buffer, sizeof(buffer), 0);
+            recvall(newSock, (char*)&buffer, &buffersize);
             sscanf(buffer, "%s", nextCommand);
         }
 
@@ -195,7 +238,7 @@ int main(int argc, char* argv[]) {
 }
 
 bool Authenticate(char* usersFile, int socket, char** user){
-    size_t len = 1024;
+    int len = 1024;
     char buffer[1024];
     char checkUsername[1024];
     char checkPassword[1024];
@@ -203,7 +246,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     char password[1024];
 
     // receive authentication data from client
-    recv(socket, buffer, len, 0);
+    recvall(socket, buffer, &len);
     sscanf(buffer, "%s;%s", username, password);
     strcpy(*user, username);
 
@@ -248,4 +291,4 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     return recipients;
 }
 
-// TODO: add error handling for every send() & recv()
+// TODO: add error handling for every sendall() & recvall()
