@@ -258,7 +258,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
 
     while(fgets(buffer, 1024, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
-        printf("buffer: %s\n",buffer);
+        printf("readfromfile: %s\n",buffer);
         if (strcmp(checkUsername, username) == 0){
             return true;
         }

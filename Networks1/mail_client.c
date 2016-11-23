@@ -119,8 +119,9 @@ int main(int argc, char* argv[])
     char password[1024];
 
     printf("Waiting for username and password\r\n");
-    scanf("User: %s\n", user);
-    scanf("Password: %s\n", password);
+//    scanf("User: %s \n", user);
+//    scanf("Password: %s \n", password);
+    scanf("%s %s", user,password);
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
