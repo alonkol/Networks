@@ -16,7 +16,7 @@
 #define FAIL_MSG "Failure"
 #define SUCCESS_MSG "Success"
 #define MAX_EMAIL_NUMBER 32000
-#define DEFAULT_LISTEN_PORT 6423
+#define DEFAULT_LISTEN_PORT 6899
 
 int sendall(int s, char *buf, int *len)
 {
@@ -248,13 +248,15 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // receive authentication data from client
     recvall(socket, buffer, &len);
     sscanf(buffer, "%s;%s", username, password);
+	printf("got from client: %s\n", buffer);
     strcpy(*user, username);
-
+	printf("username - %s\n",user);
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
     while(fgets(buffer, 1024, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
+	printf("buffer: %s\n",buffer);
         if (strcmp(checkUsername, username) == 0){
             return true;
         }

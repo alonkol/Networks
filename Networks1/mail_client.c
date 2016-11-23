@@ -10,7 +10,7 @@
 #include <errno.h>
 //#include "utils.h"
 
-#define DEFAULT_PORT "6423"
+#define DEFAULT_PORT "6899"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
 
@@ -189,7 +189,4 @@ int main(int argc, char* argv[])
     close(sock);
 }
 
-// TODO if failMSG return
-// TODO remove prints we dont need
-// TODO: add error handling for every sendall() & recvall()
 
