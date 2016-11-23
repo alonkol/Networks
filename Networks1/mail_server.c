@@ -172,15 +172,15 @@ int main(int argc, char* argv[]) {
         // connected, accept commands
 
         recvall(newSock, (char*)&buffer, &buffersize);
-        printf("%s\n",buffer);
         sscanf(buffer, "%s %s", nextCommand, commandParam);
-        printf("%s--%s\n",nextCommand,commandParam);
+        printf("command: %s,params: %s\n",nextCommand,commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")==0){
                 printf("IN SHOW_INBOX\n");
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
                         sprintf(buffer, "%d ; %s ; %s", i, emails[i].content->from, emails[i].content->title);
+                        printf("SENDING %s\n",buffer);
                         sendall(newSock, (char *)&buffer, &buffersize);
                     }
                 }
@@ -193,9 +193,11 @@ int main(int argc, char* argv[]) {
                     sprintf(bigBuffer, "%s ; %s ; %s ; %s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = sizeof(bigBuffer);
+                    printf("sending: %s\n",bigBuffer);
                     sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
                 } else {
                     strcpy(buffer, FAIL_MSG);
+                    printf("sending: %s\n",buffer);
                     sendall(newSock, (char *)&buffer, &buffersize);
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
@@ -206,13 +208,15 @@ int main(int argc, char* argv[]) {
                 } else {
                     strcpy(buffer, FAIL_MSG);
                 }
+                printf("sending: %s\n",buffer);
                 sendall(newSock, (char *)&buffer, &buffersize);
             } else if (strcmp(nextCommand,"COMPOSE")==0){
                 printf("IN COMPOSE\n");
                 recvall(newSock, (char*)&buffer, &buffersize);
+                printf("recieved: %s\n",buffer);
                 sscanf(buffer, "%s", commandParam);
                 sscanf(commandParam, "%s ; %s ; %s", recipients_string, title, text);
-
+                printf("%s-%s-%s\n", recipients_string, title, text);
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
                 emailContent = (EmailContent*)malloc(sizeof(EmailContent));
@@ -240,7 +244,7 @@ int main(int argc, char* argv[]) {
             sscanf(buffer, "%s %s", nextCommand, commandParam);
             printf("%s--%s\n",nextCommand,commandParam);
         }
-
+        printf("Closing...\r\n");
         close(newSock);
     }
 }

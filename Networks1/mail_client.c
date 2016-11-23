@@ -151,9 +151,11 @@ int main(int argc, char* argv[])
         printf("sending buff: %s\n",buffer);
         sendall(sock, (char *)&buffer, &buffer_size);
 
-        if (strcmp(buffer,"SHOW_INBOX"))
+        if (strcmp(buffer,"SHOW_INBOX")==0)
         {
+            printf("IN SHOWINBOX\n");
             recvall(sock, (char*)&buffer, &buffer_size);
+            printf("%s", buffer);
             while (strcmp(buffer,"END")!=0)
             {
                 //TODO write msg nicely like example
@@ -161,31 +163,36 @@ int main(int argc, char* argv[])
                 recvall(sock, (char*)&buffer, &buffer_size);
             }
         }
-        else if (strcmp(buffer,"GET_MAIL"))
+        else if (strcmp(buffer,"GET_MAIL")==0)
         {
+            printf("IN GETMAIL\n");
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
             printf("got buff: %s\n",bigBuffer);
-            sscanf("%s ; %s ; %s ; %s",from,to,subject,content);
+            sscanf(bigBuffer,"%s ; %s ; %s ; %s",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
-        else if (strcmp(buffer,"DELETE_MAIL"))
+        else if (strcmp(buffer,"DELETE_MAIL")==0)
         {
+            printf("IN DELETE\n");
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
         }
-        else if (strcmp(buffer,"Compose"))
+        else if (strcmp(buffer,"Compose")==0)
         {
-            scanf("To: %s", to);
-            scanf("Subject: %s", subject);
-            scanf("Text: %s", content);
-            sprintf(bigBuffer,"%s ; %s ; %s", to,subject,content);
+            printf("IN COMPOSE\n");
+            scanf("%s", to);
+            scanf("%s", subject);
+            scanf("%s", content);
+            sprintf(buffer,"%s ; %s ; %s", to,subject,content);
+            printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
-            printf("%s",buffer);
+            printf("recieved: %s",buffer);
         }
         else if (strcmp(buffer,"Quit"))
         {
+            printf("IN QUIT");
             break;
         }
     }
