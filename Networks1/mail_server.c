@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
         printf("%s--%s\n",nextCommand,commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")==0){
+                printf("IN SHOW_INBOX\n");
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
                         sprintf(buffer, "%d ; %s ; %s", i, emails[i].content->from, emails[i].content->title);
@@ -186,6 +187,7 @@ int main(int argc, char* argv[]) {
                 sprintf(buffer, "END");
                 sendall(newSock, (char *)&buffer, &buffersize);
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
+                printf("IN GET_MAIL\n");
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
                     sprintf(bigBuffer, "%s ; %s ; %s ; %s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
@@ -197,6 +199,7 @@ int main(int argc, char* argv[]) {
                     sendall(newSock, (char *)&buffer, &buffersize);
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
+                printf("IN DELETE\n");
                 if (strcmp(user, emails[atoi(commandParam)].to) == 0){
                     emails[atoi(commandParam)].active = false;
                     strcpy(buffer, SUCCESS_MSG);
@@ -205,6 +208,7 @@ int main(int argc, char* argv[]) {
                 }
                 sendall(newSock, (char *)&buffer, &buffersize);
             } else if (strcmp(nextCommand,"COMPOSE")==0){
+                printf("IN COMPOSE\n");
                 recvall(newSock, (char*)&buffer, &buffersize);
                 sscanf(buffer, "%s", commandParam);
                 sscanf(commandParam, "%s ; %s ; %s", recipients_string, title, text);
