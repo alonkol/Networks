@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     }
     else if (argc==3)
     {
-        strcpy(portToConnect,DEFAULT_PORT);
+        strcpy(portToConnect, DEFAULT_PORT);
         strcpy(hostname, argv[2]);
     }
     else
@@ -78,27 +78,32 @@ int main(int argc, char* argv[])
         strcpy(hostname, DEFAULT_HOST);
     }
 
-    struct addrinfo hints, *res;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    getaddrinfo(hostname, portToConnect, &hints, &res );
-
+    struct sockaddr_in serv_addr;
+    struct addrinfo *serverinfo, *p;
+    int sockfd, errcheck;
     printf("creating socket...\r\n");
-    int sock = socket(res->ai_family, res->ai_socktype, res ->ai_protocol);
-    int errcheck;
+	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd < 0)
+    {
+        printf("Could not create socket: %s\n" , strerror(errno));
+        return 1;
+    }
 
-    printf("connecting...\r\n");
-    errcheck = connect(sock, (struct sockaddr*) &res,sizeof(struct sockaddr));
+	printf("getting address info\r\n");
+    errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
+	if (errcheck < 0) {
+		printf("getaddrinfo() failed: %s\n", strerror(errno));
+		return 1;
+	}
+
+	printf("connecting...\r\n");
+	int errcheck = connect(sockfd, serverinfo->ai_addr, serverinfo->ai_addrlen);
     if (errcheck == -1){
         printf("Error in function: connect()\r\n"
                        "With error: %s\r\n", strerror(errno));
         return -1;
     }
-
+    freeaddrinfo(serverinfo);
     printf("Receiving greeting...\r\n");
 
     char buffer[1024];
