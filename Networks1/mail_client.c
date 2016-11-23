@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
         }
-        else if (strcmp(buffer,"Compose")==0)
+        else if (strcmp(buffer,"COMPOSE")==0)
         {
             printf("IN COMPOSE\n");
             scanf("%s", to);
@@ -190,10 +190,12 @@ int main(int argc, char* argv[])
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("recieved: %s",buffer);
         }
-        else if (strcmp(buffer,"Quit"))
+        else if (strcmp(buffer,"Quit")==0)
         {
             printf("IN QUIT");
             break;
+        }else{
+            printf("Command not supported.\r\n");
         }
     }
 

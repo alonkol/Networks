@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
         sendall(newSock, (char *)&buffer, &buffersize);
 
         // connected, accept commands
-
+        printf("Waiting for command...\r\n");
         recvall(newSock, (char*)&buffer, &buffersize);
         sscanf(buffer, "%s %s", nextCommand, commandParam);
         printf("command: %s,params: %s\n",nextCommand,commandParam);
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
                 strcpy(buffer, SUCCESS_MSG);
                 sendall(newSock, (char *)&buffer, &buffersize);
             }
-
+            printf("Waiting for command...\r\n");
             recvall(newSock, (char*)&buffer, &buffersize);
             printf("%s\n",buffer);
             sscanf(buffer, "%s %s", nextCommand, commandParam);
