@@ -1,0 +1,15 @@
+TODO:
+1. every send should include number of chars in message in first byte and then the message itself.
+sendall should send the correct number of bytes and make sure he gets that number returning from send all.
+recvall should first read first byte to know how much bytes needs to be read, and then read this amount 
+(and make sure it is the value returned from recvall)
+2. add password check to server
+3. add error handeling for every fu**ing line
+4. if send or recv return 0 (I think it's 0) it means the other party has disconnected, 
+then if it happens, get out of loop for server or terminate if client
+5. remove prints who aren't interesting
+6. documentation in code and out of code (in the assignment)
+7. shutdown bonus
+8. memory leaks
+9. revert default port to 6423
+
