@@ -162,6 +162,7 @@ int main(int argc, char* argv[]) {
             close(newSock);
             continue;
         }
+        printf("got username - %s\n",user);
         printf("Authenticated successfully...\r\n");
 
         // sendall authentication successful message to client
@@ -237,7 +238,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-bool Authenticate(char* usersFile, int socket, char** user){
+bool Authenticate(char* usersFile, int socket, char* user){
     int len = 1024;
     char buffer[1024];
     char checkUsername[1024];
@@ -249,14 +250,14 @@ bool Authenticate(char* usersFile, int socket, char** user){
     recvall(socket, buffer, &len);
     sscanf(buffer, "%s;%s", username, password);
 	printf("got from client: %s\n", buffer);
-    strcpy(*user, username);
+    strcpy(user, username);
 	printf("username - %s\n",user);
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
     while(fgets(buffer, 1024, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
-	printf("buffer: %s\n",buffer);
+        printf("buffer: %s\n",buffer);
         if (strcmp(checkUsername, username) == 0){
             return true;
         }
