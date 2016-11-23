@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 	}
 
 	printf("connecting...\r\n");
-	int errcheck = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
+	errcheck = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
     if (errcheck == -1){
         printf("Error in function: connect()\r\n"
                        "With error: %s\r\n", strerror(errno));
@@ -134,7 +134,6 @@ int main(int argc, char* argv[])
     {
         printf("Connection failed....\r\n Exiting....\r\n");
         close(sock);
-        freeaddrinfo(res);
         return 1;
     }
     printf("Connection established....\r\n");
