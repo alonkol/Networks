@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
-    sscanf(buffer, "%s;%s", user, password);
+    sprintf(buffer, "%s;%s", user, password);
     sendall(sock, (char *)&buffer, &buffer_size);
 
     printf("Waiting for server to react....\r\n");

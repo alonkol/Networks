@@ -57,7 +57,7 @@ int recvall(int s, char *buf, int *len)
 }
 
 
-bool Authenticate(char* usersFile, int socket);
+bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
 typedef struct email_content{
@@ -156,13 +156,13 @@ int main(int argc, char* argv[]) {
         sendall(newSock, (char *)&buffer, &buffersize);
 
         printf("Authenticating...\r\n");
-        if (!Authenticate(usersFile, newSock)){
+        if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
             sendall(newSock, (char *)&buffer, &buffersize);
             close(newSock);
             continue;
         }
-        //printf("got username - %s\n",user);
+        printf("got username - %s\n",user);
         printf("Authenticated successfully...\r\n");
 
         // sendall authentication successful message to client
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-bool Authenticate(char* usersFile, int socket){
+bool Authenticate(char* usersFile, int socket, char** user){
     int len = 1024;
     char buffer[1024];
     char checkUsername[1024];
@@ -250,8 +250,8 @@ bool Authenticate(char* usersFile, int socket){
     recvall(socket, buffer, &len);
     printf("got from client: %s\n", buffer);
     sscanf(buffer, "%s;%s", username, password);
-	printf("got from client: %s\n", buffer);
-    //strcpy(user, username);
+
+    strcpy(*user, username);
 	printf("username - %s, password-%s\n",username,password);
     // read form file
     FILE* fp = fopen(usersFile, "r");
