@@ -57,10 +57,15 @@ int main(int argc, char* argv[])
 {
     if (argc < 2 || argc > 4)
     {
-        // TODO: error
+        printf("Invalid input. please use the following format: \r\n"
+                       "mail_client <optional:hostname <optional:port>>\r\n");
+        return -1;
     }
     char portToConnect[1024];
     char hostname[1024];
+    struct sockaddr_in serv_addr;
+    struct addrinfo *serverinfo, *p;
+    int sock, errcheck;
 
     if (argc==4)
     {
@@ -78,12 +83,9 @@ int main(int argc, char* argv[])
         strcpy(hostname, DEFAULT_HOST);
     }
 
-    struct sockaddr_in serv_addr;
-    struct addrinfo *serverinfo, *p;
-    int sockfd, errcheck;
     printf("creating socket...\r\n");
-	int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(sockfd < 0)
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock < 0)
     {
         printf("Could not create socket: %s\n" , strerror(errno));
         return 1;
@@ -97,7 +99,7 @@ int main(int argc, char* argv[])
 	}
 
 	printf("connecting...\r\n");
-	int errcheck = connect(sockfd, serverinfo->ai_addr, serverinfo->ai_addrlen);
+	int errcheck = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
     if (errcheck == -1){
         printf("Error in function: connect()\r\n"
                        "With error: %s\r\n", strerror(errno));
@@ -186,7 +188,6 @@ int main(int argc, char* argv[])
     }
 
     close(sock);
-    freeaddrinfo(res);
 }
 
 // TODO if failMSG return
