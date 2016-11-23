@@ -172,13 +172,14 @@ int main(int argc, char* argv[]) {
         // connected, accept commands
 
         recvall(newSock, (char*)&buffer, &buffersize);
+        printf("%s\n",buffer);
         sscanf(buffer, "%s %s", nextCommand, commandParam);
-
+        printf("%s--%s\n",nextCommand,commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")){
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
-                        sprintf(buffer, "%d;%s;%s", i, emails[i].content->from, emails[i].content->title);
+                        sprintf(buffer, "%d ; %s ; %s", i, emails[i].content->from, emails[i].content->title);
                         sendall(newSock, (char *)&buffer, &buffersize);
                     }
                 }
@@ -187,7 +188,7 @@ int main(int argc, char* argv[]) {
             } else if (strcmp(nextCommand,"GET_MAIL")){
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
-                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
+                    sprintf(bigBuffer, "%s ; %s ; %s ; %s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = sizeof(bigBuffer);
                     sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
@@ -206,7 +207,7 @@ int main(int argc, char* argv[]) {
             } else if (strcmp(nextCommand,"COMPOSE")){
                 recvall(newSock, (char*)&buffer, &buffersize);
                 sscanf(buffer, "%s", commandParam);
-                sscanf(commandParam, "%s;%s;%s", recipients_string, title, text);
+                sscanf(commandParam, "%s ; %s ; %s", recipients_string, title, text);
 
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
@@ -231,7 +232,9 @@ int main(int argc, char* argv[]) {
             }
 
             recvall(newSock, (char*)&buffer, &buffersize);
-            sscanf(buffer, "%s", nextCommand);
+            printf("%s\n",buffer);
+            sscanf(buffer, "%s %s", nextCommand, commandParam);
+            printf("%s--%s\n",nextCommand,commandParam);
         }
 
         close(newSock);

@@ -4,6 +4,7 @@ sendall should send the correct number of bytes and make sure he gets that numbe
 recvall should first read first byte to know how much bytes needs to be read, and then read this amount 
 (and make sure it is the value returned from recvall)
 2. add password check to server
+2.5: change user input to 'User: <user>\n Password: <pass>\n'
 3. add error handeling for every fu**ing line
 4. if send or recv return 0 (I think it's 0) it means the other party has disconnected, 
 then if it happens, get out of loop for server or terminate if client

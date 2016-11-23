@@ -148,6 +148,7 @@ int main(int argc, char* argv[])
     {
         printf("Enter Command:\r\n");
         scanf("%s",buffer);
+        printf("sending buff: %s\n",buffer);
         sendall(sock, (char *)&buffer, &buffer_size);
 
         if (strcmp(buffer,"SHOW_INBOX"))
@@ -155,6 +156,7 @@ int main(int argc, char* argv[])
             recvall(sock, (char*)&buffer, &buffer_size);
             while (strcmp(buffer,"END")!=0)
             {
+                //TODO write msg nicely like example
                 printf("%s", buffer);
                 recvall(sock, (char*)&buffer, &buffer_size);
             }
@@ -163,7 +165,8 @@ int main(int argc, char* argv[])
         {
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
-            sscanf("%s;%s;%s;%s",from,to,subject,content);
+            printf("got buff: %s\n",bigBuffer);
+            sscanf("%s ; %s ; %s ; %s",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
         else if (strcmp(buffer,"DELETE_MAIL"))
@@ -176,7 +179,7 @@ int main(int argc, char* argv[])
             scanf("To: %s", to);
             scanf("Subject: %s", subject);
             scanf("Text: %s", content);
-            sprintf(bigBuffer,"%s;%s;%s", to,subject,content);
+            sprintf(bigBuffer,"%s ; %s ; %s", to,subject,content);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
