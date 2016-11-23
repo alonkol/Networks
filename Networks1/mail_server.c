@@ -250,15 +250,16 @@ bool Authenticate(char* usersFile, int socket, char** user){
     recvall(socket, buffer, &len);
     printf("got from client: %s\n", buffer);
     sscanf(buffer, "%s;%s", username, password);
-
+    printf("username - %s, password-%s\n",username,password);
     strcpy(*user, username);
-	printf("username - %s, password-%s\n",username,password);
+	printf("USER: %s\n",*user);
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
     while(fgets(buffer, 1024, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
         printf("readfromfile: %s\n",buffer);
+        printf("read user: %s;readpass: %s\n", checkUsername,checkPassword);
         if (strcmp(checkUsername, username) == 0){
             return true;
         }
