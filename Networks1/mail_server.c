@@ -249,7 +249,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // receive authentication data from client
     recvall(socket, buffer, &len);
     printf("got from client: %s\n", buffer);
-    sscanf(buffer, "%s;%s", username, password);
+    sscanf(buffer, "%s ; %s", username, password);
     printf("username - %s, password-%s\n",username,password);
     strcpy(*user, username);
 	printf("USER: %s\n",*user);
