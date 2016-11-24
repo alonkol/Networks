@@ -10,7 +10,7 @@
 #include <errno.h>
 //#include "utils.h"
 
-#define DEFAULT_PORT "6899"
+#define DEFAULT_PORT "6423"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
 
@@ -119,9 +119,9 @@ int main(int argc, char* argv[])
     char password[1024];
 
     printf("Waiting for username and password\r\n");
-//    scanf("User: %s \n", user);
-//    scanf("Password: %s \n", password);
-    scanf("%s %s", user,password);
+    scanf("User: %s \r\n", user);
+    scanf("Password: %s \r\n", password);
+//    scanf("%s %s", user,password);
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");

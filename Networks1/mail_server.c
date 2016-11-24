@@ -16,7 +16,7 @@
 #define FAIL_MSG "Failure"
 #define SUCCESS_MSG "Success"
 #define MAX_EMAIL_NUMBER 32000
-#define DEFAULT_LISTEN_PORT 6899
+#define DEFAULT_LISTEN_PORT 6423
 
 int sendall(int s, char *buf, int *len)
 {
@@ -28,6 +28,8 @@ int sendall(int s, char *buf, int *len)
         n = send(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
             break;
         }
         total += n;
@@ -48,6 +50,10 @@ int recvall(int s, char *buf, int *len)
         if (n == -1)
         {
             break;
+        }
+        if (n == 0) // client disconnected
+        {
+            return -1;
         }
         total += n;
         bytesleft -= n;
@@ -139,6 +145,7 @@ int main(int argc, char* argv[]) {
     int curr_email = 0;
     int i, msg_id;
     int recipients_amount = 0;
+    bool breakOuter = false;
 
     char recipients_string[1024];
     char title[1024];
@@ -153,12 +160,24 @@ int main(int argc, char* argv[]) {
         printf("Accepted new client\r\n");
 
         strcpy(buffer, GREETING);
-        sendall(newSock, (char *)&buffer, &buffersize);
+        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        if (errcheck == -1)
+        {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
+            close(newSock);
+            continue;
+        }
 
         printf("Authenticating...\r\n");
         if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
-            sendall(newSock, (char *)&buffer, &buffersize);
+            errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+            if (errcheck == -1)
+            {
+                printf("Error in function sendall()\r\n"
+                               "%s", strerror(errno));
+            }
             close(newSock);
             continue;
         }
@@ -167,11 +186,24 @@ int main(int argc, char* argv[]) {
 
         // sendall authentication successful message to client
         strcpy(buffer, SUCCESS_MSG);
-        sendall(newSock, (char *)&buffer, &buffersize);
+        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        if (errcheck == -1)
+        {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
+            close(newSock);
+            continue;
+        }
 
         // connected, accept commands
         printf("Waiting for command...\r\n");
-        recvall(newSock, (char*)&buffer, &buffersize);
+        errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+        if (errcheck == -1)
+        {
+            printf("Client disconnected\r\n");
+            close(newSock);
+            continue;
+        }
         sscanf(buffer, "%s %s", nextCommand, commandParam);
         printf("command: %s,params: %s\n",nextCommand,commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
@@ -181,11 +213,27 @@ int main(int argc, char* argv[]) {
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
                         sprintf(buffer, "%d ; %s ; %s", i, emails[i].content->from, emails[i].content->title);
                         printf("SENDING %s\n",buffer);
-                        sendall(newSock, (char *)&buffer, &buffersize);
+                        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                        if (errcheck == -1)
+                        {
+                            printf("Error in function sendall()\r\n"
+                                           "%s", strerror(errno));
+                            breakOuter = true;
+                        }
                     }
                 }
+                if (breakOuter) {
+                    breakOuter = false;
+                    break;
+                }
                 sprintf(buffer, "END");
-                sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                if (errcheck == -1)
+                {
+                    printf("Error in function sendall()\r\n"
+                                   "%s", strerror(errno));
+                    break;
+                }
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
                 printf("IN GET_MAIL\n");
                 msg_id = atoi(commandParam);
@@ -194,11 +242,23 @@ int main(int argc, char* argv[]) {
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = sizeof(bigBuffer);
                     printf("sending: %s\n",bigBuffer);
-                    sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
+                    errcheck = sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
+                    if (errcheck == -1)
+                    {
+                        printf("Error in function sendall()\r\n"
+                                       "%s", strerror(errno));
+                        break;
+                    }
                 } else {
                     strcpy(buffer, FAIL_MSG);
                     printf("sending: %s\n",buffer);
-                    sendall(newSock, (char *)&buffer, &buffersize);
+                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                    if (errcheck == -1)
+                    {
+                        printf("Error in function sendall()\r\n"
+                                       "%s", strerror(errno));
+                        break;
+                    }
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
                 printf("IN DELETE\n");
@@ -209,10 +269,22 @@ int main(int argc, char* argv[]) {
                     strcpy(buffer, FAIL_MSG);
                 }
                 printf("sending: %s\n",buffer);
-                sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                if (errcheck == -1)
+                {
+                    printf("Error in function sendall()\r\n"
+                                   "%s", strerror(errno));
+                    break;
+                }
             } else if (strcmp(nextCommand,"COMPOSE")==0){
                 printf("IN COMPOSE\n");
-                recvall(newSock, (char*)&buffer, &buffersize);
+                errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+                if (errcheck == -1)
+                {
+                    printf("Error in function sendall()\r\n"
+                                   "%s", strerror(errno));
+                    break;
+                }
                 printf("recieved: %s\n",buffer);
                 sscanf(buffer, "%s", commandParam);
                 sscanf(commandParam, "%s ; %s ; %s", recipients_string, title, text);
@@ -236,10 +308,22 @@ int main(int argc, char* argv[]) {
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
-                sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                if (errcheck == -1)
+                {
+                    printf("Error in function sendall()\r\n"
+                                   "%s", strerror(errno));
+                    break;
+                }
             }
             printf("Waiting for command...\r\n");
-            recvall(newSock, (char*)&buffer, &buffersize);
+            errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+            if (errcheck == -1)
+            {
+                printf("Error in function recvall()\r\n"
+                               "%s", strerror(errno));
+                break;
+            }
             printf("%s\n",buffer);
             sscanf(buffer, "%s %s", nextCommand, commandParam);
             printf("%s--%s\n",nextCommand,commandParam);
@@ -258,7 +342,13 @@ bool Authenticate(char* usersFile, int socket, char** user){
     char password[1024];
 
     // receive authentication data from client
-    recvall(socket, buffer, &len);
+    if (recvall(socket, buffer, &len) == -1)
+    {
+        printf("Error in function recvall()\r\n"
+                       "%s", strerror(errno));
+        return false;
+    }
+
     printf("got from client: %s\n", buffer);
     sscanf(buffer, "%s ; %s", username, password);
     printf("username - %s, password-%s\n",username,password);
@@ -271,7 +361,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
         printf("readfromfile: %s\n",buffer);
         printf("read user: %s;readpass: %s\n", checkUsername,checkPassword);
-        if (strcmp(checkUsername, username) == 0){
+        if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0){
             return true;
         }
     }
@@ -307,4 +397,3 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     return recipients;
 }
 
-// TODO: add error handling for every sendall() & recvall()
