@@ -49,10 +49,13 @@ int recvall(int s, char *buf, int *len)
         n = recv(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
+            printf("Error in function recvall()\r\n"
+                           "%s", strerror(errno));
             break;
         }
         if (n == 0) // client disconnected
         {
+            printf("Client disconnected\r\n");
             return -1;
         }
         total += n;
@@ -163,8 +166,6 @@ int main(int argc, char* argv[]) {
         errcheck = sendall(newSock, (char *)&buffer, &buffersize);
         if (errcheck == -1)
         {
-            printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
             close(newSock);
             continue;
         }
@@ -172,12 +173,8 @@ int main(int argc, char* argv[]) {
         printf("Authenticating...\r\n");
         if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
-            errcheck = sendall(newSock, (char *)&buffer, &buffersize);
-            if (errcheck == -1)
-            {
-                printf("Error in function sendall()\r\n"
-                               "%s", strerror(errno));
-            }
+            // no need to check sendall since user failed to authenticate anyway.
+            sendall(newSock, (char *)&buffer, &buffersize);
             close(newSock);
             continue;
         }
@@ -189,8 +186,6 @@ int main(int argc, char* argv[]) {
         errcheck = sendall(newSock, (char *)&buffer, &buffersize);
         if (errcheck == -1)
         {
-            printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
             close(newSock);
             continue;
         }
@@ -200,7 +195,6 @@ int main(int argc, char* argv[]) {
         errcheck = recvall(newSock, (char*)&buffer, &buffersize);
         if (errcheck == -1)
         {
-            printf("Client disconnected\r\n");
             close(newSock);
             continue;
         }
@@ -216,8 +210,6 @@ int main(int argc, char* argv[]) {
                         errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                         if (errcheck == -1)
                         {
-                            printf("Error in function sendall()\r\n"
-                                           "%s", strerror(errno));
                             breakOuter = true;
                         }
                     }
@@ -230,8 +222,6 @@ int main(int argc, char* argv[]) {
                 errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                 if (errcheck == -1)
                 {
-                    printf("Error in function sendall()\r\n"
-                                   "%s", strerror(errno));
                     break;
                 }
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
@@ -245,8 +235,6 @@ int main(int argc, char* argv[]) {
                     errcheck = sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
                     if (errcheck == -1)
                     {
-                        printf("Error in function sendall()\r\n"
-                                       "%s", strerror(errno));
                         break;
                     }
                 } else {
@@ -255,8 +243,6 @@ int main(int argc, char* argv[]) {
                     errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                     if (errcheck == -1)
                     {
-                        printf("Error in function sendall()\r\n"
-                                       "%s", strerror(errno));
                         break;
                     }
                 }
@@ -272,8 +258,6 @@ int main(int argc, char* argv[]) {
                 errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                 if (errcheck == -1)
                 {
-                    printf("Error in function sendall()\r\n"
-                                   "%s", strerror(errno));
                     break;
                 }
             } else if (strcmp(nextCommand,"COMPOSE")==0){
@@ -281,8 +265,6 @@ int main(int argc, char* argv[]) {
                 errcheck = recvall(newSock, (char*)&buffer, &buffersize);
                 if (errcheck == -1)
                 {
-                    printf("Error in function sendall()\r\n"
-                                   "%s", strerror(errno));
                     break;
                 }
                 printf("recieved: %s\n",buffer);
@@ -311,8 +293,6 @@ int main(int argc, char* argv[]) {
                 errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                 if (errcheck == -1)
                 {
-                    printf("Error in function sendall()\r\n"
-                                   "%s", strerror(errno));
                     break;
                 }
             }
@@ -320,8 +300,6 @@ int main(int argc, char* argv[]) {
             errcheck = recvall(newSock, (char*)&buffer, &buffersize);
             if (errcheck == -1)
             {
-                printf("Error in function recvall()\r\n"
-                               "%s", strerror(errno));
                 break;
             }
             printf("%s\n",buffer);
@@ -344,8 +322,6 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // receive authentication data from client
     if (recvall(socket, buffer, &len) == -1)
     {
-        printf("Error in function recvall()\r\n"
-                       "%s", strerror(errno));
         return false;
     }
 
