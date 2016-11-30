@@ -61,6 +61,53 @@ int recvall(int s, char *buf, int *len)
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
+int create_connection(const char* hostname, const char* portToConnect)
+{
+    int errcheck;
+    int sock;
+    struct addrinfo *serverinfo, *p;
+
+    printf("creating socket...\r\n");
+	sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock < 0)
+    {
+        printf("Could not create socket: %s\n" , strerror(errno));
+        return -1;
+    }
+
+	printf("getting address info\r\n");
+    errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
+	if (errcheck < 0) {
+		printf("getaddrinfo() failed: %s\n", strerror(errno));
+		close(sock)
+		return -1;
+	}
+
+	printf("connecting...\r\n");
+	// loop through all the results and connect to the first we can
+	for(p = serverinfo; p != NULL; p = p->ai_next) {
+		errcheck = connect(sock, p->ai_addr, p->ai_addrlen);
+		if (errcheck)
+		{
+			// try the next in list...
+			continue;
+		}
+		break;
+	}
+
+	freeaddrinfo(serverinfo);
+	// if failed - quit!
+	if (errcheck)
+	{
+		printf("Error in function: connect()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        close(sock);
+		return -1;
+	}
+
+	return sock;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -72,9 +119,7 @@ int main(int argc, char* argv[])
     }
     char portToConnect[1024];
     char hostname[1024];
-    struct sockaddr_in serv_addr;
-    struct addrinfo *serverinfo, *p;
-    int sock, errcheck;
+    int sock;
 
     if (argc==4)
     {
@@ -92,29 +137,13 @@ int main(int argc, char* argv[])
         strcpy(hostname, DEFAULT_HOST);
     }
 
-    printf("creating socket...\r\n");
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock < 0)
-    {
-        printf("Could not create socket: %s\n" , strerror(errno));
+    printf("Creating connection\r\n");
+    sock = create_connection(hostname,portToConnect);
+    if (sock == -1){
+        // it means we failed to create connection (error message already printed)
         return 1;
     }
 
-	printf("getting address info\r\n");
-    errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
-	if (errcheck < 0) {
-		printf("getaddrinfo() failed: %s\n", strerror(errno));
-		return 1;
-	}
-
-	printf("connecting...\r\n");
-	errcheck = connect(sock, serverinfo->ai_addr, serverinfo->ai_addrlen);
-    if (errcheck == -1){
-        printf("Error in function: connect()\r\n"
-                       "With error: %s\r\n", strerror(errno));
-        return -1;
-    }
-    freeaddrinfo(serverinfo);
     printf("Receiving greeting...\r\n");
 
     char buffer[1024];
