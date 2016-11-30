@@ -198,21 +198,25 @@ int main(int argc, char* argv[])
                 printf("%s\n", buffer);
                 recvall(sock, (char*)&buffer, &buffer_size);
             }
+            printf("End of inbox\n");
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
-            printf("IN GETMAIL\n");
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
+            if (strcmp(bigBuffer,SUCCESS_MSG)!=0){
+                printf("oops, can't find the mail you requested...\r\n");
+            }
+            else{
             sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
+            }
         }
         else if (strcmp(command,"DELETE_MAIL")==0)
         {
             recvall(sock, (char*)&buffer, &buffer_size);
             if (strcmp(buffer,SUCCESS_MSG)!=0){
-                printf("Error in Delete Mail...\r\n Exiting... \r\n");
-                break;
+                printf("oops, can't delete the mail you requested...\r\n");
             }
         }
         else if (strcmp(command,"COMPOSE")==0)
@@ -226,12 +230,11 @@ int main(int argc, char* argv[])
             sprintf(buffer,"%s;%s;%s", to,subject,content);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
-            printf("recieved: %s",buffer);
             if (strcmp(buffer,SUCCESS_MSG)!=0){
                 printf("Error in compose...\r\n Exiting... \r\n");
-                break;
-            }
+            }else{
             printf("Message sent..\r\n");
+            }
         }
         else if (strcmp(command,"QUIT")==0)
         {
