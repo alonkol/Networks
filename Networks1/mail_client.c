@@ -79,7 +79,7 @@ int create_connection(const char* hostname, const char* portToConnect)
     errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
 	if (errcheck < 0) {
 		printf("getaddrinfo() failed: %s\n", strerror(errno));
-		close(sock)
+		close(sock);
 		return -1;
 	}
 
@@ -107,7 +107,6 @@ int create_connection(const char* hostname, const char* portToConnect)
 
 	return sock;
 }
-
 
 int main(int argc, char* argv[])
 {
