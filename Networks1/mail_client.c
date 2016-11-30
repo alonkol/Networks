@@ -24,6 +24,8 @@ int sendall(int s, char *buf, int *len)
         n = send(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
             break;
         }
         total += n;
@@ -43,7 +45,14 @@ int recvall(int s, char *buf, int *len)
         n = recv(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
+            printf("Error in function recvall()\r\n"
+                           "%s", strerror(errno));
             break;
+        }
+        if (n == 0) // client disconnected
+        {
+            printf("Client disconnected\r\n");
+            return -1;
         }
         total += n;
         bytesleft -= n;
@@ -55,7 +64,7 @@ int recvall(int s, char *buf, int *len)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2 || argc > 4)
+    if (argc < 2 || argc > 4 || strcmp(argv[1],"mail_client")!=0)
     {
         printf("Invalid input. please use the following format: \r\n"
                        "mail_client <optional:hostname <optional:port>>\r\n");
@@ -119,13 +128,13 @@ int main(int argc, char* argv[])
     char password[1024];
 
     printf("Waiting for username and password\r\n");
-    scanf("User: %s \r\n", user);
-    scanf("Password: %s \r\n", password);
-//    scanf("%s %s", user,password);
+    scanf("User: %[^\n]s \r\n", user);
+    scanf("Password: %[^\n]s \r\n", password);
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
-    sprintf(buffer, "%s ; %s", user, password);
+    sprintf(buffer, "%s;%s", user, password);
+    printf("%s", buffer);
     sendall(sock, (char *)&buffer, &buffer_size);
 
     printf("Waiting for server to react....\r\n");
@@ -143,54 +152,59 @@ int main(int argc, char* argv[])
     char to[1024];
     char subject[1024];
     char content[1024];
+    char command[1024];
 
     while(true)
     {
         printf("Enter Command:\r\n");
-        scanf("%s",buffer);
-        printf("sending buff: %s\n",buffer);
+        scanf("%[^\n]s",buffer);
+        printf("sending command: %s\r\n",buffer);
         sendall(sock, (char *)&buffer, &buffer_size);
+        sscanf(buffer, "%s",command);
+        printf("%s",command);
 
-        if (strcmp(buffer,"SHOW_INBOX")==0)
+        if (strcmp(command,"SHOW_INBOX")==0)
         {
             printf("IN SHOWINBOX\n");
             recvall(sock, (char*)&buffer, &buffer_size);
-            printf("%s", buffer);
             while (strcmp(buffer,"END")!=0)
             {
                 //TODO write msg nicely like example
-                printf("%s", buffer);
+                printf("%s\n", buffer);
                 recvall(sock, (char*)&buffer, &buffer_size);
             }
+            printf("END OF SHOW INBOX\n");
         }
-        else if (strcmp(buffer,"GET_MAIL")==0)
+        else if (strcmp(command,"GET_MAIL")==0)
         {
             printf("IN GETMAIL\n");
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
             printf("got buff: %s\n",bigBuffer);
-            sscanf(bigBuffer,"%s ; %s ; %s ; %s",from,to,subject,content);
+            sscanf(bigBuffer,"%[^\n]s ; %[^\n]s ; %[^\n]s ; %[^\n]s",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
-        else if (strcmp(buffer,"DELETE_MAIL")==0)
+        else if (strcmp(command,"DELETE_MAIL")==0)
         {
             printf("IN DELETE\n");
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("%s",buffer);
         }
-        else if (strcmp(buffer,"COMPOSE")==0)
+        else if (strcmp(command,"COMPOSE")==0)
         {
             printf("IN COMPOSE\n");
-            scanf("%s", to);
-            scanf("%s", subject);
-            scanf("%s", content);
+            scanf("To: %[^\n]s", to);
+            scanf("Subject: %[^\n]s", subject);
+            scanf("%Text: [^\n]s", content);
             sprintf(buffer,"%s ; %s ; %s", to,subject,content);
             printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("recieved: %s",buffer);
+            //if sucsseded
+            printf("Message sent..\r\n");
         }
-        else if (strcmp(buffer,"Quit")==0)
+        else if (strcmp(command,"QUIT")==0)
         {
             printf("IN QUIT");
             break;

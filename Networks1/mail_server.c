@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
                 printf("IN SHOW_INBOX\n");
                 for (i = 1; i < curr_email; i++){
                     if (emails[i].active && strcmp(emails[i].to, user) == 0){
-                        sprintf(buffer, "%d ; %s ; %s", i, emails[i].content->from, emails[i].content->title);
+                        sprintf(buffer, "%d. %s \"%s\"", i, emails[i].content->from, emails[i].content->title);
                         printf("SENDING %s\n",buffer);
                         errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                         if (errcheck == -1)
@@ -267,9 +267,10 @@ int main(int argc, char* argv[]) {
                 {
                     break;
                 }
-                printf("recieved: %s\n",buffer);
                 sscanf(buffer, "%s", commandParam);
-                sscanf(commandParam, "%s ; %s ; %s", recipients_string, title, text);
+                printf("recieved: %s\n",buffer);
+
+                sscanf(commandParam, "%[^\n]s ; %[^\n]s ; %[^\n]s", recipients_string, title, text);
                 printf("%s-%s-%s\n", recipients_string, title, text);
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
