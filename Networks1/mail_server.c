@@ -95,11 +95,11 @@ int main(int argc, char* argv[]) {
     unsigned short portToListen = DEFAULT_LISTEN_PORT;
 
 
-    char* usersFile = argv[1];
-    if (argc == 3){
-        portToListen = (u_short) strtoul(argv[2], NULL, 0);
+    char* usersFile = argv[2];
+    if (argc == 4){
+        portToListen = (u_short) strtoul(argv[3], NULL, 0);
     }
-
+    printf("%u\n",portToListen);
     printf("creating socket...\r\n");
     int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (mainSocket == -1){

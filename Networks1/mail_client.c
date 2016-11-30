@@ -66,14 +66,10 @@ int create_connection(char* hostname, char* portToConnect)
     int errcheck;
     int sock;
     int port;
-    struct sockaddr_in serv_addr;
     struct addrinfo *serverinfo, *p;
 
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    sscanf(portToConnect,"%d",&port);
-	serv_addr.sin_port = htons(port);
-    sprintf(portToConnect,"%d",htons(port));
+
+
 
     printf("creating socket...\r\n");
 	sock = socket(AF_INET, SOCK_STREAM, 0);
