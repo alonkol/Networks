@@ -160,12 +160,14 @@ int main(int argc, char* argv[])
     char password[1024];
 
     printf("Waiting for username and password\r\n");
-    scanf("User: %[^\n]s \r\n", user);
-    scanf("Password: %[^\n]s \r\n", password);
+    scanf("User: %s", user);
+    getchar();
+    scanf("Password: %[^\n]s", password);
+    getchar();
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
-    sprintf(buffer, "%s;%s", user, password);
+    sprintf(buffer, "%s ; %s", user, password);
     printf("%s", buffer);
     sendall(sock, (char *)&buffer, &buffer_size);
 
@@ -226,8 +228,11 @@ int main(int argc, char* argv[])
         {
             printf("IN COMPOSE\n");
             scanf("To: %[^\n]s", to);
+            getchar();
             scanf("Subject: %[^\n]s", subject);
+            getchar();
             scanf("Text: %[^\n]s", content);
+            getchar();
             sprintf(buffer,"%s ; %s ; %s", to,subject,content);
             printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
