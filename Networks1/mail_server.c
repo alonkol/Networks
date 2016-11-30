@@ -84,7 +84,7 @@ typedef struct email{
 } Email;
 
 int main(int argc, char* argv[]) {
-    if (argc != 2 && argc != 3 && strcmp(argv[1],"mail_server")!=0){
+    if (argc < 2 || argc > 3 || strcmp(argv[1],"mail_server")!=0){
         printf("Invalid input. please use the following format: \r\n"
                        "mail_server <users file> <optional:port>\r\n");
         return -1;
