@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
             printf("IN COMPOSE\n");
             scanf("To: %[^\n]s", to);
             scanf("Subject: %[^\n]s", subject);
-            scanf("%Text: [^\n]s", content);
+            scanf("Text: %[^\n]s", content);
             sprintf(buffer,"%s ; %s ; %s", to,subject,content);
             printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
