@@ -114,7 +114,7 @@ int create_connection(char* hostname, char* portToConnect)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2 || argc > 4 || strcmp(argv[1],"mail_client")!=0)
+    if (argc > 3)
     {
         printf("Invalid input. please use the following format: \r\n"
                        "mail_client <optional:hostname <optional:port>>\r\n");
@@ -124,15 +124,15 @@ int main(int argc, char* argv[])
     char hostname[1024];
     int sock;
 
-    if (argc==4)
+    if (argc==3)
     {
-        strcpy(hostname, argv[2]);
-        strcpy(portToConnect,argv[3]);
+        strcpy(hostname, argv[1]);
+        strcpy(portToConnect,argv[2]);
     }
-    else if (argc==3)
+    else if (argc==2)
     {
         strcpy(portToConnect, DEFAULT_PORT);
-        strcpy(hostname, argv[2]);
+        strcpy(hostname, argv[1]);
     }
     else
     {

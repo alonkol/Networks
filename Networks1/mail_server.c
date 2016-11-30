@@ -84,7 +84,7 @@ typedef struct email{
 } Email;
 
 int main(int argc, char* argv[]) {
-    if (argc ==1 || argc > 4 || strcmp(argv[1],"mail_server")!=0){
+    if (argc !=2 && argc != 3){
         printf("Invalid input. please use the following format: \r\n"
                        "mail_server <users file> <optional:port>\r\n");
         return -1;
@@ -95,9 +95,9 @@ int main(int argc, char* argv[]) {
     unsigned short portToListen = DEFAULT_LISTEN_PORT;
 
 
-    char* usersFile = argv[2];
-    if (argc == 4){
-        portToListen = (u_short) strtoul(argv[3], NULL, 0);
+    char* usersFile = argv[1];
+    if (argc == 3){
+        portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
     printf("%u\n",portToListen);
     printf("creating socket...\r\n");
