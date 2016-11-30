@@ -65,7 +65,12 @@ int create_connection(const char* hostname, const char* portToConnect)
 {
     int errcheck;
     int sock;
+    int port;
     struct addrinfo *serverinfo, *p;
+
+    sscanf(portToConnect,"%d",&port);
+    port = htons(port);
+    sprintf(portToConnect,"%d",port);
 
     printf("creating socket...\r\n");
 	sock = socket(AF_INET, SOCK_STREAM, 0);
