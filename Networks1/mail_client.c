@@ -51,7 +51,7 @@ int recvall(int s, char *buf, int *len)
         }
         if (n == 0) // client disconnected
         {
-            printf("Client disconnected\r\n");
+            printf("Other side disconnected\r\n");
             return -1;
         }
         total += n;
@@ -67,9 +67,6 @@ int create_connection(char* hostname, char* portToConnect)
     int sock;
     int port;
     struct addrinfo *serverinfo, *p;
-
-
-
 
     printf("creating socket...\r\n");
 	sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -164,11 +161,8 @@ int main(int argc, char* argv[])
     getchar();
     scanf("Password: %[^\n]s", password);
     getchar();
-    printf("%s %s\n", user, password);
 
-    printf("sending username and password...\r\n");
     sprintf(buffer, "%s;%s", user, password);
-    printf("%s", buffer);
     sendall(sock, (char *)&buffer, &buffer_size);
 
     printf("Waiting for server to react....\r\n");
@@ -193,41 +187,36 @@ int main(int argc, char* argv[])
         printf("Enter Command:\r\n");
         scanf("%[^\n]s",buffer);
         getchar();
-        printf("sending command: %s\r\n",buffer);
         sendall(sock, (char *)&buffer, &buffer_size);
         sscanf(buffer, "%s",command);
-        printf("%s",command);
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
-            printf("IN SHOWINBOX\n");
             recvall(sock, (char*)&buffer, &buffer_size);
             while (strcmp(buffer,"END")!=0)
             {
-                //TODO write msg nicely like example
                 printf("%s\n", buffer);
                 recvall(sock, (char*)&buffer, &buffer_size);
             }
-            printf("END OF SHOW INBOX\n");
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
             printf("IN GETMAIL\n");
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
-            printf("got buff: %s\n",bigBuffer);
             sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
         else if (strcmp(command,"DELETE_MAIL")==0)
         {
-            printf("IN DELETE\n");
             recvall(sock, (char*)&buffer, &buffer_size);
-            printf("%s",buffer);
+            if (strcmp(buffer,SUCCESS_MSG)!=0){
+                printf("Error in Delete Mail...\r\n Exiting... \r\n");
+                break;
+            }
         }
         else if (strcmp(command,"COMPOSE")==0)
         {
-            printf("IN COMPOSE\n");
             scanf("To: %[^\n]s", to);
             getchar();
             scanf("Subject: %[^\n]s", subject);
@@ -235,11 +224,13 @@ int main(int argc, char* argv[])
             scanf("Text: %[^\n]s", content);
             getchar();
             sprintf(buffer,"%s;%s;%s", to,subject,content);
-            printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
             printf("recieved: %s",buffer);
-            //if sucsseded
+            if (strcmp(buffer,SUCCESS_MSG)!=0){
+                printf("Error in compose...\r\n Exiting... \r\n");
+                break;
+            }
             printf("Message sent..\r\n");
         }
         else if (strcmp(command,"QUIT")==0)
@@ -250,7 +241,6 @@ int main(int argc, char* argv[])
             printf("Command not supported.\r\n");
         }
     }
-
     close(sock);
 }
 
