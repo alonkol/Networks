@@ -1,4 +1,3 @@
-#include <stddef.h>
 #include <stdbool.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -25,7 +24,7 @@ int sendall(int s, char *buf, int *len)
         if (n == -1)
         {
             printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         total += n;
@@ -46,7 +45,7 @@ int recvall(int s, char *buf, int *len)
         if (n == -1)
         {
             printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         if (n == 0) // client disconnected
@@ -69,44 +68,46 @@ int create_connection(char* hostname, char* portToConnect)
     struct addrinfo *serverinfo, *p;
 
     printf("creating socket...\r\n");
-	sock = socket(AF_INET, SOCK_STREAM, 0);
+    sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0)
     {
-        printf("Could not create socket: %s\n" , strerror(errno));
+        printf("Could not create socket: %s\n", strerror(errno));
         return -1;
     }
 
-	printf("getting address info\r\n");
+    printf("getting address info\r\n");
     errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
-	if (errcheck < 0) {
-		printf("getaddrinfo() failed: %s\n", strerror(errno));
-		close(sock);
-		return -1;
-	}
-
-	printf("connecting...\r\n");
-	// loop through all the results and connect to the first we can
-	for(p = serverinfo; p != NULL; p = p->ai_next) {
-		errcheck = connect(sock, p->ai_addr, p->ai_addrlen);
-		if (errcheck)
-		{
-			// try the next in list...
-			continue;
-		}
-		break;
-	}
-
-	freeaddrinfo(serverinfo);
-	// if failed - quit!
-	if (errcheck)
-	{
-		printf("Error in function: connect()\r\n"
-                       "With error: %s\r\n", strerror(errno));
+    if (errcheck < 0)
+    {
+        printf("getaddrinfo() failed: %s\n", strerror(errno));
         close(sock);
-		return -1;
-	}
+        return -1;
+    }
 
-	return sock;
+    printf("connecting...\r\n");
+    // loop through all the results and connect to the first we can
+    for(p = serverinfo; p != NULL; p = p->ai_next)
+    {
+        errcheck = connect(sock, p->ai_addr, p->ai_addrlen);
+        if (errcheck)
+        {
+            // try the next in list...
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(serverinfo);
+    // if failed - quit!
+    if (errcheck)
+    {
+        printf("Error in function: connect()\r\n"
+               "With error: %s\r\n", strerror(errno));
+        close(sock);
+        return -1;
+    }
+
+    return sock;
 }
 
 int main(int argc, char* argv[])
@@ -114,7 +115,7 @@ int main(int argc, char* argv[])
     if (argc > 3)
     {
         printf("Invalid input. please use the following format: \r\n"
-                       "mail_client <optional:hostname <optional:port>>\r\n");
+               "mail_client <optional:hostname <optional:port>>\r\n");
         return -1;
     }
     char portToConnect[1024];
@@ -139,7 +140,8 @@ int main(int argc, char* argv[])
 
     printf("Creating connection\r\n");
     sock = create_connection(hostname,portToConnect);
-    if (sock == -1){
+    if (sock == -1)
+    {
         // it means we failed to create connection (error message already printed)
         return 1;
     }
@@ -150,7 +152,11 @@ int main(int argc, char* argv[])
     int buffer_size = sizeof(buffer);
     char bigBuffer[10*1024];
 
-    recvall(sock, (char*)&buffer, &buffer_size);
+    errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+    if (errcheck==-1)
+    {
+        break;
+    }
     printf("greeting: %s\r\n",buffer);
 
     char user[1024];
@@ -166,7 +172,11 @@ int main(int argc, char* argv[])
     sendall(sock, (char *)&buffer, &buffer_size);
 
     printf("Waiting for server to react....\r\n");
-    recvall(sock, (char*)&buffer, &buffer_size);
+    errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+    if (errcheck==-1)
+    {
+        break;
+    }
 
     if (strcmp(buffer,SUCCESS_MSG)!=0)
     {
@@ -192,30 +202,49 @@ int main(int argc, char* argv[])
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
-            recvall(sock, (char*)&buffer, &buffer_size);
+            errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+            if (errcheck==-1)
+            {
+                break;
+            }
             while (strcmp(buffer,"END")!=0)
             {
                 printf("%s\n", buffer);
-                recvall(sock, (char*)&buffer, &buffer_size);
+                errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+                if (errcheck==-1)
+                {
+                    break;
+                }
             }
             printf("End of inbox\n");
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
             int bigbuffersize= sizeof(bigBuffer);
-            recvall(sock, (char*)&bigBuffer, &bigbuffersize);
-            if (strcmp(bigBuffer,SUCCESS_MSG)!=0){
+            errcheck=recvall(sock, (char*)&bigBuffer, &bigbuffersize);
+            if (errcheck==-1)
+            {
+                break;
+            }
+            if (strcmp(bigBuffer,SUCCESS_MSG)!=0)
+            {
                 printf("oops, can't find the mail you requested...\r\n");
             }
-            else{
-            sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
-            printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
+            else
+            {
+                sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
+                printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
             }
         }
         else if (strcmp(command,"DELETE_MAIL")==0)
         {
-            recvall(sock, (char*)&buffer, &buffer_size);
-            if (strcmp(buffer,SUCCESS_MSG)!=0){
+            errcheck= recvall(sock, (char*)&buffer, &buffer_size);
+            if (errcheck==-1)
+            {
+                break;
+            }
+            if (strcmp(buffer,SUCCESS_MSG)!=0)
+            {
                 printf("oops, can't delete the mail you requested...\r\n");
             }
         }
@@ -229,18 +258,27 @@ int main(int argc, char* argv[])
             getchar();
             sprintf(buffer,"%s;%s;%s", to,subject,content);
             sendall(sock, (char *)&buffer, &buffer_size);
-            recvall(sock, (char*)&buffer, &buffer_size);
-            if (strcmp(buffer,SUCCESS_MSG)!=0){
+            errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+            if (errcheck==-1)
+            {
+                break;
+            }
+            if (strcmp(buffer,SUCCESS_MSG)!=0)
+            {
                 printf("Error in compose...\r\n Exiting... \r\n");
-            }else{
-            printf("Message sent..\r\n");
+            }
+            else
+            {
+                printf("Message sent..\r\n");
             }
         }
         else if (strcmp(command,"QUIT")==0)
         {
             printf("IN QUIT");
             break;
-        }else{
+        }
+        else
+        {
             printf("Command not supported.\r\n");
         }
     }
