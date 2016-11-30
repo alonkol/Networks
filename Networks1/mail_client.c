@@ -12,6 +12,12 @@
 #define DEFAULT_PORT "6423"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
+#define MAX_USERNAME 50
+#define MAX_PASSWORD 50
+#define NUM_OF_CLIENTS 20
+#define MAX_SUBJECT 100
+#define MAX_CONTENT 2000
+#define MAX_BUFFER 1024
 
 int sendall(int s, char *buf, int *len)
 {
@@ -118,8 +124,8 @@ int main(int argc, char* argv[])
                "mail_client <optional:hostname <optional:port>>\r\n");
         return -1;
     }
-    char portToConnect[1024];
-    char hostname[1024];
+    char portToConnect[MAX_BUFFER];
+    char hostname[MAX_BUFFER];
     int sock,errcheck;
 
     if (argc==3)
@@ -148,9 +154,9 @@ int main(int argc, char* argv[])
 
     printf("Receiving greeting...\r\n");
 
-    char buffer[1024];
+    char buffer[MAX_BUFFER];
     int buffer_size = sizeof(buffer);
-    char bigBuffer[10*1024];
+    char bigBuffer[10*MAX_BUFFER];
 
     errcheck = recvall(sock, (char*)&buffer, &buffer_size);
     if (errcheck==-1)
@@ -159,8 +165,8 @@ int main(int argc, char* argv[])
     }
     printf("greeting: %s\r\n",buffer);
 
-    char user[1024];
-    char password[1024];
+    char user[MAX_USERNAME];
+    char password[MAX_PASSWORD];
 
     printf("Waiting for username and password\r\n");
     scanf("User: %s", user);
@@ -186,11 +192,11 @@ int main(int argc, char* argv[])
     }
     printf("Connection established....\r\n");
 
-    char from[1024];
-    char to[1024];
-    char subject[1024];
-    char content[1024];
-    char command[1024];
+    char from[MAX_USERNAME*NUM_OF_CLIENTS];
+    char to[NUM_OF_CLIENTS];
+    char subject[MAX_SUBJECT];
+    char content[MAX_CONTENT];
+    char command[MAX_BUFFER];
 
     while(true)
     {
