@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
                 printf("IN GET_MAIL\n");
                 msg_id = atoi(commandParam);
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
-                    sprintf(bigBuffer, "%s ; %s ; %s ; %s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
+                    sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = sizeof(bigBuffer);
                     printf("sending: %s\n",bigBuffer);
@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
                 sscanf(buffer, "%s", commandParam);
                 printf("recieved: %s\n",buffer);
 
-                sscanf(commandParam, "%[^\n]s ; %[^\n]s ; %[^\n]s", recipients_string, title, text);
+                sscanf(commandParam, "%[^;];%[^;];%[^;]", recipients_string, title, text);
                 printf("%s-%s-%s\n", recipients_string, title, text);
                 recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
@@ -327,7 +327,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     }
 
     printf("got from client: %s\n", buffer);
-    sscanf(buffer, "%s ; %s", username, password);
+    sscanf(buffer, "%[^;];%[^;]", username, password);
     printf("username - %s, password-%s\n",username,password);
     strcpy(*user, username);
 	printf("USER: %s\n",*user);

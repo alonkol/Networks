@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
     printf("%s %s\n", user, password);
 
     printf("sending username and password...\r\n");
-    sprintf(buffer, "%s ; %s", user, password);
+    sprintf(buffer, "%s;%s", user, password);
     printf("%s", buffer);
     sendall(sock, (char *)&buffer, &buffer_size);
 
@@ -192,6 +192,7 @@ int main(int argc, char* argv[])
     {
         printf("Enter Command:\r\n");
         scanf("%[^\n]s",buffer);
+        getchar();
         printf("sending command: %s\r\n",buffer);
         sendall(sock, (char *)&buffer, &buffer_size);
         sscanf(buffer, "%s",command);
@@ -215,7 +216,7 @@ int main(int argc, char* argv[])
             int bigbuffersize= sizeof(bigBuffer);
             recvall(sock, (char*)&bigBuffer, &bigbuffersize);
             printf("got buff: %s\n",bigBuffer);
-            sscanf(bigBuffer,"%[^\n]s ; %[^\n]s ; %[^\n]s ; %[^\n]s",from,to,subject,content);
+            sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
             printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
         }
         else if (strcmp(command,"DELETE_MAIL")==0)
@@ -233,7 +234,7 @@ int main(int argc, char* argv[])
             getchar();
             scanf("Text: %[^\n]s", content);
             getchar();
-            sprintf(buffer,"%s ; %s ; %s", to,subject,content);
+            sprintf(buffer,"%s;%s;%s", to,subject,content);
             printf("sending: %s",buffer);
             sendall(sock, (char *)&buffer, &buffer_size);
             recvall(sock, (char*)&buffer, &buffer_size);
