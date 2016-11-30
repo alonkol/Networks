@@ -12,11 +12,17 @@
 //#include "utils.h"
 
 #define BACKLOG 5
+#define TO_TOTAL 20
+#define MAX_USERNAME 50
+#define MAX_PASSWORD 50
+#define MAX_SUBJECT 100
+#define MAX_CONTENT 2000
 #define GREETING "Winter is coming"
 #define FAIL_MSG "Failure"
 #define SUCCESS_MSG "Success"
-#define MAX_EMAIL_NUMBER 32000
-#define DEFAULT_LISTEN_PORT 6423
+#define MAXMAILS 32000
+#define DEFAULT_PORT 6423
+#define NUM_OF_CLIENTS 20
 
 int sendall(int s, char *buf, int *len)
 {
@@ -72,14 +78,14 @@ char** ExtractRecipients(char* recipients_string, int* amount);
 typedef struct email_content{
 
     char** recipients;
-    char from[100];
-    char recipients_string[1000];
-    char title[100];
-    char text[2000];
+    char from[MAX_USERNAME];
+    char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
+    char title[MAX_SUBJECT];
+    char text[MAX_CONTENT];
 } EmailContent;
 
 typedef struct email{
-    char to[100];
+    char to[MAX_USERNAME];
     EmailContent* content;
     bool active;
 } Email;
@@ -93,7 +99,7 @@ int main(int argc, char* argv[]) {
 
     int errcheck;
 
-    unsigned short portToListen = DEFAULT_LISTEN_PORT;
+    unsigned short portToListen = DEFAULT_PORT;
 
 
     char* usersFile = argv[1];
@@ -144,16 +150,16 @@ int main(int argc, char* argv[]) {
     char nextCommand[1024];
     char commandParam[1024];
     int buffersize = sizeof(buffer);
-    char *user = (char *)malloc(1024);
-    Email* emails = (Email *)malloc(sizeof(Email)*MAX_EMAIL_NUMBER);
+    char user[MAX_USERNAME];
+    Email* emails = (Email *)malloc(sizeof(Email)*MAXMAILS);
     int curr_email = 1;
-    int i, msg_id;
+    int i, msg_id, user_msg_id;
     int recipients_amount = 0;
     bool breakOuter = false;
 
-    char recipients_string[1024];
-    char title[1024];
-    char text[1024];
+    char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
+    char title[MAX_SUBJECT];
+    char text[MAX_CONTENT];
 
     char** recipients;
     EmailContent* emailContent;
@@ -190,7 +196,17 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        // connected, accept commands
+        // connected, load user emails to memory
+        int j = 1;
+        int active_user_emails[MAXMAILS];
+        for (i = 1; i <= curr_email; i++){
+            if (strcmp(emails[i].to, user) == 0){
+                active_user_emails[j] = i;
+                j++;
+            }
+        }
+
+        // accept commands
         printf("Waiting for command...\r\n");
         errcheck = recvall(newSock, (char*)&buffer, &buffersize);
         if (errcheck == -1)
@@ -201,9 +217,10 @@ int main(int argc, char* argv[]) {
         sscanf(buffer, "%s %s", nextCommand, commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")==0){
-                for (i = 1; i < curr_email; i++){
-                    if (emails[i].active && strcmp(emails[i].to, user) == 0){
-                        sprintf(buffer, "%d. %s \"%s\"", i, emails[i].content->from, emails[i].content->title);
+                for (int k = 1; k < j; k++){
+                    i = active_user_emails[k];
+                    if (emails[i].active){
+                        sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
                         errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                         if (errcheck == -1)
                         {
@@ -222,7 +239,8 @@ int main(int argc, char* argv[]) {
                     break;
                 }
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
-                msg_id = atoi(commandParam);
+                user_msg_id = atoi(commandParam);
+                msg_id = active_user_emails[user_msg_id];
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
@@ -241,8 +259,10 @@ int main(int argc, char* argv[]) {
                     }
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
-                if (strcmp(user, emails[atoi(commandParam)].to) == 0){
-                    emails[atoi(commandParam)].active = false;
+                user_msg_id = atoi(commandParam);
+                msg_id = active_user_emails[user_msg_id];
+                if (strcmp(user, emails[msg_id].to) == 0){
+                    emails[msg_id].active = false;
                     strcpy(buffer, SUCCESS_MSG);
                 } else {
                     strcpy(buffer, FAIL_MSG);
@@ -276,6 +296,11 @@ int main(int argc, char* argv[]) {
                     strcpy(emails[curr_email].to, recipients[i]);
                     emails[curr_email].content = emailContent;
                     emails[curr_email].active = true;
+
+                    if (strcmp(user, recipients[i]) == 0){
+                        active_user_emails[j] = curr_email;
+                        j++;
+                    }
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
@@ -299,12 +324,12 @@ int main(int argc, char* argv[]) {
 }
 
 bool Authenticate(char* usersFile, int socket, char** user){
-    int len = 1024;
-    char buffer[1024];
-    char checkUsername[1024];
-    char checkPassword[1024];
-    char username[1024];
-    char password[1024];
+    int len = 150;
+    char buffer[150];
+    char checkUsername[MAX_USERNAME];
+    char checkPassword[MAX_PASSWORD];
+    char username[MAX_USERNAME];
+    char password[MAX_PASSWORD];
 
     // receive authentication data from client
     if (recvall(socket, buffer, &len) == -1)
@@ -317,7 +342,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
-    while(fgets(buffer, 1024, fp) != NULL){
+    while(fgets(buffer, 150, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
         if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0){
             return true;
@@ -328,15 +353,14 @@ bool Authenticate(char* usersFile, int socket, char** user){
 }
 
 char** ExtractRecipients(char* recipients_string, int* amount){
-    char** recipients = (char**)malloc(sizeof(char*)*20);
+    char recipients[TO_TOTAL][MAX_USERNAME];
     int i, j, cnt;
-    char curr_recipient[1024];
+    char curr_recipient[MAX_USERNAME];
     cnt = 0;
 
     for (i = 0, j = 0; i < strlen(recipients_string); i++){
         if (recipients_string[i] == ','){
             curr_recipient[j] = '\0';
-            recipients[cnt] = (char*)malloc(j);
             strcpy(recipients[cnt],curr_recipient);
             cnt++;
             j=0;
@@ -347,7 +371,6 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     }
 
     curr_recipient[j] = '\0';
-    recipients[cnt] = (char*)malloc(j);
     strcpy(recipients[cnt],curr_recipient);
     cnt++;
     *amount = cnt;
