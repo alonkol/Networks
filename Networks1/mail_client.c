@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     }
     char portToConnect[1024];
     char hostname[1024];
-    int sock;
+    int sock,errcheck;
 
     if (argc==3)
     {
@@ -197,7 +197,11 @@ int main(int argc, char* argv[])
         printf("Enter Command:\r\n");
         scanf("%[^\n]s",buffer);
         getchar();
-        sendall(sock, (char *)&buffer, &buffer_size);
+        errcheck = sendall(sock, (char *)&buffer, &buffer_size);
+        if (errcheck==-1)
+        {
+            break;
+        }
         sscanf(buffer, "%s",command);
 
         if (strcmp(command,"SHOW_INBOX")==0)
@@ -257,7 +261,11 @@ int main(int argc, char* argv[])
             scanf("Text: %[^\n]s", content);
             getchar();
             sprintf(buffer,"%s;%s;%s", to,subject,content);
-            sendall(sock, (char *)&buffer, &buffer_size);
+            errcheck=sendall(sock, (char *)&buffer, &buffer_size);
+            if (errcheck==-1)
+            {
+                break;
+            }
             errcheck = recvall(sock, (char*)&buffer, &buffer_size);
             if (errcheck==-1)
             {
