@@ -54,8 +54,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    int errcheck;
-
     unsigned short portToListen = DEFAULT_PORT;
 
     char* usersFile = argv[1];
