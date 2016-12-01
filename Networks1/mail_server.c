@@ -28,7 +28,7 @@
 
 int sendall(int s, char *buf, int *len);
 int recvall(int s, char *buf, int *len);
-int init_listen(socklen_t* addrlen);
+int init_listen(unsigned short portToListen, socklen_t* addrlen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
@@ -63,8 +63,9 @@ int main(int argc, char* argv[]) {
         portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
 
+    int errcheck;
     socklen_t addrlen;
-    int mainSocket = init_listen(&addrlen);
+    int mainSocket = init_listen(portToListen, &addrlen);
 
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
@@ -243,7 +244,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-int init_listen(socklen_t* addrlen){
+int init_listen(unsigned short portToListen, socklen_t* addrlen){
     int errcheck;
 
     printf("creating socket...\r\n");
