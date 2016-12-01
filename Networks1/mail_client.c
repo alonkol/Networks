@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
             {
                 break;
             }
-            if (strcmp(buffer,SUCCESS_MSG)!=0)
+            if (strcmp(buffer,FAIL_MSG)==0)
             {
                 printf("oops, can't delete the mail you requested...\r\n");
             }
