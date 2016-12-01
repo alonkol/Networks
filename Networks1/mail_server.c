@@ -165,7 +165,10 @@ int main(int argc, char* argv[]) {
                 if (msg_id == -1){
                     strcpy(buffer, FAIL_MSG);
                     errcheck = sendall(newSock, (char *)&buffer);
-                    break;
+                    if (errcheck == -1){
+                        break;
+                    }
+                    continue;
                 }
 
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
@@ -190,7 +193,10 @@ int main(int argc, char* argv[]) {
                 if (msg_id == -1){
                     strcpy(buffer, FAIL_MSG);
                     errcheck = sendall(newSock, (char *)&buffer);
-                    break;
+                    if (errcheck == -1){
+                        break;
+                    }
+                    continue;
                 }
 
                 if (strcmp(user, emails[msg_id].to) == 0){
