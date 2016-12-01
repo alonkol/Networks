@@ -31,11 +31,11 @@ int sendall(int s, char *buf)
     sprintf(len_string,"%2i",*len_short);
     n = send(s, len_string, 2, 0);
     if (n == -1)
-        {
-            printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
-            return -1;
-        }
+    {
+        printf("Error in function sendall()\r\n"
+               "%s", strerror(errno));
+        return -1;
+    }
 
     int bytesleft = totalLen;
     while(total < totalLen)
@@ -44,7 +44,7 @@ int sendall(int s, char *buf)
         if (n == -1)
         {
             printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         total += n;
@@ -61,10 +61,11 @@ int recvall(int s, char *buf)
 
     // read first two bytes to know how many bytes to read
     n = recv(s,len, 2,0);
-    if (n == -1){
-            printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
-            return -1;
+    if (n == -1)
+    {
+        printf("Error in function recvall()\r\n"
+               "%s", strerror(errno));
+        return -1;
     }
     int totalLen = atoi(len);
     int bytesleft = totalLen;
@@ -74,7 +75,7 @@ int recvall(int s, char *buf)
         if (n == -1)
         {
             printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         if (n == 0) // client disconnected

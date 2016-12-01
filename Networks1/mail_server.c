@@ -32,7 +32,8 @@ bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 int get_msg_id(char* commandParam, int* active_user_emails);
 
-typedef struct email_content{
+typedef struct email_content
+{
 
     char** recipients;
     char from[MAX_USERNAME];
@@ -41,30 +42,35 @@ typedef struct email_content{
     char text[MAX_CONTENT];
 } EmailContent;
 
-typedef struct email{
+typedef struct email
+{
     char to[MAX_USERNAME];
     EmailContent* content;
     bool active;
 } Email;
 
-int main(int argc, char* argv[]) {
-    if (argc !=2 && argc != 3){
+int main(int argc, char* argv[])
+{
+    if (argc !=2 && argc != 3)
+    {
         printf("Invalid input. please use the following format: \r\n"
-                       "mail_server <users file> <optional:port>\r\n");
+               "mail_server <users file> <optional:port>\r\n");
         return -1;
     }
 
     unsigned short portToListen = DEFAULT_PORT;
 
     char* usersFile = argv[1];
-    if (argc == 3){
+    if (argc == 3)
+    {
         portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
 
     struct sockaddr_in my_addr;
     socklen_t addrlen = sizeof(my_addr);
     int mainSocket = init_listen(portToListen);
-    if (mainSocket == -1){
+    if (mainSocket == -1)
+    {
         return -1;
     }
 
@@ -85,7 +91,8 @@ int main(int argc, char* argv[]) {
     char** recipients;
     EmailContent* emailContent;
 
-    while(true){
+    while(true)
+    {
         printf("accepting...\r\n");
         newSock = accept(mainSocket, NULL, &addrlen);
         printf("Accepted new client\r\n");
@@ -99,7 +106,8 @@ int main(int argc, char* argv[]) {
         }
 
         printf("Authenticating...\r\n");
-        if (!Authenticate(usersFile, newSock, &user)){
+        if (!Authenticate(usersFile, newSock, &user))
+        {
             strcpy(buffer, FAIL_MSG);
             // no need to check sendall since user failed to authenticate anyway.
             sendall(newSock, (char *)&buffer);
@@ -120,8 +128,10 @@ int main(int argc, char* argv[]) {
         // connected, load user emails to memory
         int j = 1;
         int active_user_emails[MAXMAILS+1] = {0};
-        for (i = 1; i <= curr_email; i++){
-            if (strcmp(emails[i].to, user) == 0){
+        for (i = 1; i <= curr_email; i++)
+        {
+            if (strcmp(emails[i].to, user) == 0)
+            {
                 active_user_emails[j] = i;
                 j++;
             }
@@ -136,11 +146,15 @@ int main(int argc, char* argv[]) {
             continue;
         }
         sscanf(buffer, "%s %s", nextCommand, commandParam);
-        while(strcmp(nextCommand,"QUIT") != 0){
-            if (strcmp(nextCommand,"SHOW_INBOX")==0){
-                for (k = 1; k < j; k++){
+        while(strcmp(nextCommand,"QUIT") != 0)
+        {
+            if (strcmp(nextCommand,"SHOW_INBOX")==0)
+            {
+                for (k = 1; k < j; k++)
+                {
                     i = active_user_emails[k];
-                    if (emails[i].active){
+                    if (emails[i].active)
+                    {
                         sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
                         errcheck = sendall(newSock, (char *)&buffer);
                         if (errcheck == -1)
@@ -150,7 +164,8 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-                if (breakOuter) {
+                if (breakOuter)
+                {
                     breakOuter = false;
                     break;
                 }
@@ -160,18 +175,30 @@ int main(int argc, char* argv[]) {
                 {
                     break;
                 }
-            } else if (strcmp(nextCommand,"GET_MAIL")==0){
+            }
+            else if (strcmp(nextCommand,"GET_MAIL")==0)
+            {
                 msg_id = get_msg_id(commandParam, active_user_emails);
-                if (msg_id == -1){
+                if (msg_id == -1)
+                {
                     strcpy(buffer, FAIL_MSG);
                     errcheck = sendall(newSock, (char *)&buffer);
-                    if (errcheck == -1){
+                    if (errcheck == -1)
+                    {
                         break;
                     }
+                    printf("Waiting for command...\r\n");
+                    errcheck = recvall(newSock, (char*)&buffer);
+                    if (errcheck == -1)
+                    {
+                        break;
+                    }
+                    sscanf(buffer, "%s %s", nextCommand, commandParam);
                     continue;
                 }
 
-                if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
+                if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0)
+                {
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = BIG_BUFFER_SIZE;
@@ -180,7 +207,9 @@ int main(int argc, char* argv[]) {
                     {
                         break;
                     }
-                } else {
+                }
+                else
+                {
                     strcpy(buffer, FAIL_MSG);
                     errcheck = sendall(newSock, (char *)&buffer);
                     if (errcheck == -1)
@@ -188,21 +217,35 @@ int main(int argc, char* argv[]) {
                         break;
                     }
                 }
-            } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
+            }
+            else if (strcmp(nextCommand,"DELETE_MAIL")==0)
+            {
                 msg_id = get_msg_id(commandParam, active_user_emails);
-                if (msg_id == -1){
+                if (msg_id == -1)
+                {
                     strcpy(buffer, FAIL_MSG);
                     errcheck = sendall(newSock, (char *)&buffer);
-                    if (errcheck == -1){
+                    if (errcheck == -1)
+                    {
                         break;
                     }
+                    printf("Waiting for command...\r\n");
+                    errcheck = recvall(newSock, (char*)&buffer);
+                    if (errcheck == -1)
+                    {
+                        break;
+                    }
+                    sscanf(buffer, "%s %s", nextCommand, commandParam);
                     continue;
                 }
 
-                if (strcmp(user, emails[msg_id].to) == 0){
+                if (strcmp(user, emails[msg_id].to) == 0)
+                {
                     emails[msg_id].active = false;
                     strcpy(buffer, SUCCESS_MSG);
-                } else {
+                }
+                else
+                {
                     strcpy(buffer, FAIL_MSG);
                 }
                 errcheck = sendall(newSock, (char *)&buffer);
@@ -210,7 +253,9 @@ int main(int argc, char* argv[]) {
                 {
                     break;
                 }
-            } else if (strcmp(nextCommand,"COMPOSE")==0){
+            }
+            else if (strcmp(nextCommand,"COMPOSE")==0)
+            {
                 errcheck = recvall(newSock, (char*)&buffer);
                 if (errcheck == -1)
                 {
@@ -229,13 +274,15 @@ int main(int argc, char* argv[]) {
                 emailContent->recipients = recipients;
 
                 // foreach recipient create new email instance
-                for (i = 0; i < recipients_amount; i++){
+                for (i = 0; i < recipients_amount; i++)
+                {
                     curr_email++;
                     strcpy(emails[curr_email].to, recipients[i]);
                     emails[curr_email].content = emailContent;
                     emails[curr_email].active = true;
 
-                    if (strcmp(user, recipients[i]) == 0){
+                    if (strcmp(user, recipients[i]) == 0)
+                    {
                         active_user_emails[j] = curr_email;
                         j++;
                     }
@@ -261,14 +308,16 @@ int main(int argc, char* argv[]) {
     }
 }
 
-int init_listen(unsigned short portToListen){
+int init_listen(unsigned short portToListen)
+{
     int errcheck;
 
     printf("creating socket...\r\n");
     int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mainSocket == -1){
+    if (mainSocket == -1)
+    {
         printf("Error in function: socket()\r\n"
-                       "With error: %s\r\n", strerror(errno));
+               "With error: %s\r\n", strerror(errno));
         return -1;
     }
 
@@ -281,24 +330,27 @@ int init_listen(unsigned short portToListen){
 
     printf("binding...\r\n");
     errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, addrlen);
-    if (errcheck == -1){
+    if (errcheck == -1)
+    {
         printf("Error in function: bind()\r\n"
-                       "With error: %s\r\n", strerror(errno));
+               "With error: %s\r\n", strerror(errno));
         return -1;
     }
 
     printf("listening...\r\n");
     errcheck = listen(mainSocket, BACKLOG);
-    if (errcheck == -1){
+    if (errcheck == -1)
+    {
         printf("Error in function: listen()\r\n"
-                       "With error: %s\r\n", strerror(errno));
+               "With error: %s\r\n", strerror(errno));
         return -1;
     }
 
     return mainSocket;
 }
 
-bool Authenticate(char* usersFile, int socket, char** user){
+bool Authenticate(char* usersFile, int socket, char** user)
+{
     char buffer[SMALL_BUFFER_SIZE];
     char checkUsername[MAX_USERNAME];
     char checkPassword[MAX_PASSWORD];
@@ -316,9 +368,11 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
-    while(fgets(buffer, SMALL_BUFFER_SIZE, fp) != NULL){
+    while(fgets(buffer, SMALL_BUFFER_SIZE, fp) != NULL)
+    {
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
-        if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0){
+        if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0)
+        {
             return true;
         }
     }
@@ -326,14 +380,17 @@ bool Authenticate(char* usersFile, int socket, char** user){
 
 }
 
-char** ExtractRecipients(char* recipients_string, int* amount){
+char** ExtractRecipients(char* recipients_string, int* amount)
+{
     char** recipients = (char**)malloc(sizeof(char*)*TO_TOTAL);
     int i, j, cnt;
     char curr_recipient[MAX_USERNAME];
     cnt = 0;
 
-    for (i = 0, j = 0; i < strlen(recipients_string); i++){
-        if (recipients_string[i] == ','){
+    for (i = 0, j = 0; i < strlen(recipients_string); i++)
+    {
+        if (recipients_string[i] == ',')
+        {
             curr_recipient[j] = '\0';
             recipients[cnt] = (char*)malloc(j);
             strcpy(recipients[cnt],curr_recipient);
@@ -354,16 +411,19 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     return recipients;
 }
 
-int get_msg_id(char* commandParam, int* active_user_emails){
+int get_msg_id(char* commandParam, int* active_user_emails)
+{
     int user_msg_id;
     user_msg_id = atoi(commandParam);
     // handle invalid command parameter
-    if (user_msg_id == 0 || user_msg_id > MAXMAILS){
+    if (user_msg_id == 0 || user_msg_id > MAXMAILS)
+    {
         return -1;
     }
     int msg_id = active_user_emails[user_msg_id];
     // handle invalid index
-    if (msg_id == 0){
+    if (msg_id == 0)
+    {
         return -1;
     }
 
@@ -382,11 +442,11 @@ int sendall(int s, char *buf)
     sprintf(len_string,"%2i",*len_short);
     n = send(s, len_string, 2, 0);
     if (n == -1)
-        {
-            printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
-            return -1;
-        }
+    {
+        printf("Error in function sendall()\r\n"
+               "%s", strerror(errno));
+        return -1;
+    }
 
     int bytesleft = totalLen;
     while(total < totalLen)
@@ -395,7 +455,7 @@ int sendall(int s, char *buf)
         if (n == -1)
         {
             printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         total += n;
@@ -412,10 +472,11 @@ int recvall(int s, char *buf)
 
     // read first two bytes to know how many bytes to read
     n = recv(s,len, 2,0);
-    if (n == -1){
-            printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
-            return -1;
+    if (n == -1)
+    {
+        printf("Error in function recvall()\r\n"
+               "%s", strerror(errno));
+        return -1;
     }
     int totalLen = atoi(len);
     int bytesleft = totalLen;
@@ -425,7 +486,7 @@ int recvall(int s, char *buf)
         if (n == -1)
         {
             printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
+                   "%s", strerror(errno));
             break;
         }
         if (n == 0) // client disconnected
