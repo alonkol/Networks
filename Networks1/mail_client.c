@@ -168,10 +168,9 @@ int main(int argc, char* argv[])
     printf("Receiving greeting...\r\n");
 
     char buffer[SMALL_BUFFER_SIZE];
-    int buffer_size = SMALL_BUFFER_SIZE;
     char bigBuffer[BIG_BUFFER_SIZE];
 
-    errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+    errcheck = recvall(sock, (char*)&buffer);
     if (errcheck==-1)
     {
         return -1;
@@ -188,10 +187,10 @@ int main(int argc, char* argv[])
     getchar();
 
     sprintf(buffer, "%s;%s", user, password);
-    sendall(sock, (char *)&buffer, &buffer_size);
+    sendall(sock, (char *)&buffer);
 
     printf("Waiting for server to react....\r\n");
-    errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+    errcheck = recvall(sock, (char*)&buffer);
     if (errcheck==-1)
     {
         return -1;
@@ -216,8 +215,7 @@ int main(int argc, char* argv[])
         printf("Enter Command:\r\n");
         scanf("%[^\n]s",buffer);
         getchar();
-        errcheck = sendall(sock, (char *)&buffer, &buffer_size);
-        if (errcheck==-1)
+        if ((errcheck = sendall(sock, (char *)&buffer))==-1)
         {
             break;
         }
@@ -225,7 +223,7 @@ int main(int argc, char* argv[])
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
-            errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+            errcheck = recvall(sock, (char*)&buffer);
             if (errcheck==-1)
             {
                 break;
@@ -233,7 +231,7 @@ int main(int argc, char* argv[])
             while (strcmp(buffer,"END")!=0)
             {
                 printf("%s\n", buffer);
-                errcheck = recvall(sock, (char*)&buffer, &buffer_size);
+                errcheck = recvall(sock, (char*)&buffer);
                 if (errcheck==-1)
                 {
                     break;
@@ -242,9 +240,7 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
-            int bigbuffersize = BIG_BUFFER_SIZE;
-            errcheck=recvall(sock, (char*)&bigBuffer, &bigbuffersize);
-            if (errcheck==-1)
+            if ((errcheck=recvall(sock, (char*)&bigBuffer))==-1)
             {
                 break;
             }
@@ -260,8 +256,7 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"DELETE_MAIL")==0)
         {
-            errcheck= recvall(sock, (char*)&buffer, &buffer_size);
-            if (errcheck==-1)
+            if ((errcheck= recvall(sock, (char*)&buffer))==-1)
             {
                 break;
             }
@@ -279,13 +274,13 @@ int main(int argc, char* argv[])
             scanf("Text: %[^\n]s", content);
             getchar();
             sprintf(buffer,"%s;%s;%s", to,subject,content);
-            errcheck=sendall(sock, (char *)&buffer, &buffer_size);
-            if (errcheck==-1)
+
+            if ((errcheck=sendall(sock, (char *)&buffer))==-1)
             {
                 break;
             }
-            errcheck = recvall(sock, (char*)&buffer, &buffer_size);
-            if (errcheck==-1)
+
+            if ((errcheck = recvall(sock, (char*)&buffer))==-1)
             {
                 break;
             }

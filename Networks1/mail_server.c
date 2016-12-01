@@ -72,7 +72,6 @@ int main(int argc, char* argv[]) {
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
     char nextCommand[SMALL_BUFFER_SIZE], commandParam[SMALL_BUFFER_SIZE];
-    int buffersize = SMALL_BUFFER_SIZE;
     char* user = (char*)malloc(MAX_USERNAME);
     Email emails[MAXMAILS+1];
     int curr_email = 1, recipients_amount = 0;
@@ -92,7 +91,7 @@ int main(int argc, char* argv[]) {
         printf("Accepted new client\r\n");
 
         strcpy(buffer, GREETING);
-        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        errcheck = sendall(newSock, (char *)&buffer);
         if (errcheck == -1)
         {
             close(newSock);
@@ -103,7 +102,7 @@ int main(int argc, char* argv[]) {
         if (!Authenticate(usersFile, newSock, &user)){
             strcpy(buffer, FAIL_MSG);
             // no need to check sendall since user failed to authenticate anyway.
-            sendall(newSock, (char *)&buffer, &buffersize);
+            sendall(newSock, (char *)&buffer);
             close(newSock);
             continue;
         }
@@ -111,7 +110,7 @@ int main(int argc, char* argv[]) {
 
         // sendall authentication successful message to client
         strcpy(buffer, SUCCESS_MSG);
-        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        errcheck = sendall(newSock, (char *)&buffer);
         if (errcheck == -1)
         {
             close(newSock);
@@ -130,7 +129,7 @@ int main(int argc, char* argv[]) {
 
         // accept commands
         printf("Waiting for command...\r\n");
-        errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+        errcheck = recvall(newSock, (char*)&buffer);
         if (errcheck == -1)
         {
             close(newSock);
@@ -143,7 +142,7 @@ int main(int argc, char* argv[]) {
                     i = active_user_emails[k];
                     if (emails[i].active){
                         sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
-                        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                        errcheck = sendall(newSock, (char *)&buffer);
                         if (errcheck == -1)
                         {
                             breakOuter = true;
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
                     break;
                 }
                 sprintf(buffer, "END");
-                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer);
                 if (errcheck == -1)
                 {
                     break;
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
                 msg_id = get_msg_id(commandParam, active_user_emails);
                 if (msg_id == -1){
                     strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                    errcheck = sendall(newSock, (char *)&buffer);
                     break;
                 }
 
@@ -173,14 +172,14 @@ int main(int argc, char* argv[]) {
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
                     int bigbuffersize = BIG_BUFFER_SIZE;
-                    errcheck = sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
+                    errcheck = sendall(newSock, (char *)&bigBuffer);
                     if (errcheck == -1)
                     {
                         break;
                     }
                 } else {
                     strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                    errcheck = sendall(newSock, (char *)&buffer);
                     if (errcheck == -1)
                     {
                         break;
@@ -190,7 +189,7 @@ int main(int argc, char* argv[]) {
                 msg_id = get_msg_id(commandParam, active_user_emails);
                 if (msg_id == -1){
                     strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                    errcheck = sendall(newSock, (char *)&buffer);
                     break;
                 }
 
@@ -200,13 +199,13 @@ int main(int argc, char* argv[]) {
                 } else {
                     strcpy(buffer, FAIL_MSG);
                 }
-                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer);
                 if (errcheck == -1)
                 {
                     break;
                 }
             } else if (strcmp(nextCommand,"COMPOSE")==0){
-                errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+                errcheck = recvall(newSock, (char*)&buffer);
                 if (errcheck == -1)
                 {
                     break;
@@ -237,14 +236,14 @@ int main(int argc, char* argv[]) {
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
-                errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+                errcheck = sendall(newSock, (char *)&buffer);
                 if (errcheck == -1)
                 {
                     break;
                 }
             }
             printf("Waiting for command...\r\n");
-            errcheck = recvall(newSock, (char*)&buffer, &buffersize);
+            errcheck = recvall(newSock, (char*)&buffer);
             if (errcheck == -1)
             {
                 break;
@@ -294,7 +293,6 @@ int init_listen(unsigned short portToListen){
 }
 
 bool Authenticate(char* usersFile, int socket, char** user){
-    int len = SMALL_BUFFER_SIZE;
     char buffer[SMALL_BUFFER_SIZE];
     char checkUsername[MAX_USERNAME];
     char checkPassword[MAX_PASSWORD];
@@ -302,7 +300,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     char password[MAX_PASSWORD];
 
     // receive authentication data from client
-    if (recvall(socket, buffer, &len) == -1)
+    if (recvall(socket, buffer) == -1)
     {
         return false;
     }
