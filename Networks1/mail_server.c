@@ -164,6 +164,8 @@ int main(int argc, char* argv[]) {
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
                 msg_id = get_msg_id(commandParam, active_user_emails);
                 if (msg_id == -1){
+                    strcpy(buffer, FAIL_MSG);
+                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                     break;
                 }
 
@@ -187,6 +189,8 @@ int main(int argc, char* argv[]) {
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
                 msg_id = get_msg_id(commandParam, active_user_emails);
                 if (msg_id == -1){
+                    strcpy(buffer, FAIL_MSG);
+                    errcheck = sendall(newSock, (char *)&buffer, &buffersize);
                     break;
                 }
 
@@ -347,18 +351,15 @@ char** ExtractRecipients(char* recipients_string, int* amount){
 }
 
 int get_msg_id(char* commandParam, int* active_user_emails){
+    int user_msg_id;
     user_msg_id = atoi(commandParam);
     // handle invalid command parameter
     if (user_msg_id == 0 || user_msg_id > MAXMAILS){
-        strcpy(buffer, FAIL_MSG);
-        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
         return -1;
     }
-    msg_id = active_user_emails[user_msg_id];
+    int msg_id = active_user_emails[user_msg_id];
     // handle invalid index
     if (msg_id == 0){
-        strcpy(buffer, FAIL_MSG);
-        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
         return -1;
     }
 
