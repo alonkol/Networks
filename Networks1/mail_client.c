@@ -85,6 +85,7 @@ int recvall(int s, char *buf)
         total += n;
         bytesleft -= n;
     }
+    buf[total]='\0';
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
@@ -207,7 +208,7 @@ int main(int argc, char* argv[])
 
     if (strcmp(buffer,SUCCESS_MSG)!=0)
     {
-        printf("Connection failed....\r\n Exiting....\r\n");
+        printf("Authentication failed....\r\n Exiting....\r\n");
         close(sock);
         return -1;
     }
