@@ -26,54 +26,9 @@
 #define SMALL_BUFFER_SIZE 100
 #define BIG_BUFFER_SIZE 5000
 
-int sendall(int s, char *buf, int *len)
-{
-    int total = 0; /* how many bytes we've sent */
-    int bytesleft = *len; /* how many we have left to send */
-    int n;
-    while(total < *len)
-    {
-        n = send(s, buf+total, bytesleft, 0);
-        if (n == -1)
-        {
-            printf("Error in function sendall()\r\n"
-                           "%s", strerror(errno));
-            break;
-        }
-        total += n;
-        bytesleft -= n;
-    }
-    *len = total; /* return number actually sent here */
-    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
-}
-
-int recvall(int s, char *buf, int *len)
-{
-    int total = 0; /* how many bytes we've recieved */
-    int bytesleft = *len; /* how many we have left to recieve */
-    int n;
-    while(total < *len)
-    {
-        n = recv(s, buf+total, bytesleft, 0);
-        if (n == -1)
-        {
-            printf("Error in function recvall()\r\n"
-                           "%s", strerror(errno));
-            break;
-        }
-        if (n == 0) // client disconnected
-        {
-            printf("Other side disconnected\r\n");
-            return -1;
-        }
-        total += n;
-        bytesleft -= n;
-    }
-    *len = total; /* return number actually sent here */
-    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
-}
-
-
+int sendall(int s, char *buf, int *len);
+int recvall(int s, char *buf, int *len);
+int init_listen(socklen_t* addrlen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
@@ -109,7 +64,7 @@ int main(int argc, char* argv[]) {
     }
 
     socklen_t addrlen;
-    int mainSocket = initialize_listen(&addrlen);
+    int mainSocket = init_listen(&addrlen);
 
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
@@ -288,7 +243,8 @@ int main(int argc, char* argv[]) {
     }
 }
 
-int initialize_listen(socklen_t* addrlen){
+int init_listen(socklen_t* addrlen){
+    int errcheck;
 
     printf("creating socket...\r\n");
     int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -300,7 +256,6 @@ int initialize_listen(socklen_t* addrlen){
 
 
     struct sockaddr_in my_addr;
-
     *addrlen = sizeof(my_addr);
 
     my_addr.sin_family = AF_INET;
@@ -383,3 +338,50 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     return recipients;
 }
 
+
+int sendall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've sent */
+    int bytesleft = *len; /* how many we have left to send */
+    int n;
+    while(total < *len)
+    {
+        n = send(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
+            break;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
+
+int recvall(int s, char *buf, int *len)
+{
+    int total = 0; /* how many bytes we've recieved */
+    int bytesleft = *len; /* how many we have left to recieve */
+    int n;
+    while(total < *len)
+    {
+        n = recv(s, buf+total, bytesleft, 0);
+        if (n == -1)
+        {
+            printf("Error in function recvall()\r\n"
+                           "%s", strerror(errno));
+            break;
+        }
+        if (n == 0) // client disconnected
+        {
+            printf("Other side disconnected\r\n");
+            return -1;
+        }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; /* return number actually sent here */
+    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
+}
