@@ -30,6 +30,7 @@ int recvall(int s, char *buf, int *len);
 int init_listen(unsigned short portToListen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
+int get_msg_id(char* commandParam, int* active_user_emails);
 
 typedef struct email_content{
 
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]) {
     char nextCommand[SMALL_BUFFER_SIZE], commandParam[SMALL_BUFFER_SIZE];
     int buffersize = SMALL_BUFFER_SIZE;
     char* user = (char*)malloc(MAX_USERNAME);
-    Email emails[MAXMAILS];
+    Email emails[MAXMAILS+1];
     int curr_email = 1, recipients_amount = 0;
     int i, k, msg_id, user_msg_id;
     bool breakOuter = false;
@@ -119,7 +120,7 @@ int main(int argc, char* argv[]) {
 
         // connected, load user emails to memory
         int j = 1;
-        int active_user_emails[MAXMAILS];
+        int active_user_emails[MAXMAILS+1] = {0};
         for (i = 1; i <= curr_email; i++){
             if (strcmp(emails[i].to, user) == 0){
                 active_user_emails[j] = i;
@@ -161,8 +162,11 @@ int main(int argc, char* argv[]) {
                     break;
                 }
             } else if (strcmp(nextCommand,"GET_MAIL")==0){
-                user_msg_id = atoi(commandParam);
-                msg_id = active_user_emails[user_msg_id];
+                msg_id = get_msg_id(commandParam, active_user_emails);
+                if (msg_id == -1){
+                    break;
+                }
+
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
@@ -181,8 +185,11 @@ int main(int argc, char* argv[]) {
                     }
                 }
             } else if (strcmp(nextCommand,"DELETE_MAIL")==0){
-                user_msg_id = atoi(commandParam);
-                msg_id = active_user_emails[user_msg_id];
+                msg_id = get_msg_id(commandParam, active_user_emails);
+                if (msg_id == -1){
+                    break;
+                }
+
                 if (strcmp(user, emails[msg_id].to) == 0){
                     emails[msg_id].active = false;
                     strcpy(buffer, SUCCESS_MSG);
@@ -337,6 +344,25 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     *amount = cnt;
 
     return recipients;
+}
+
+int get_msg_id(char* commandParam, int* active_user_emails){
+    user_msg_id = atoi(commandParam);
+    // handle invalid command parameter
+    if (user_msg_id == 0 || user_msg_id > MAXMAILS){
+        strcpy(buffer, FAIL_MSG);
+        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        return -1;
+    }
+    msg_id = active_user_emails[user_msg_id];
+    // handle invalid index
+    if (msg_id == 0){
+        strcpy(buffer, FAIL_MSG);
+        errcheck = sendall(newSock, (char *)&buffer, &buffersize);
+        return -1;
+    }
+
+    return msg_id;
 }
 
 
