@@ -149,10 +149,10 @@ int main(int argc, char* argv[]) {
     char commandParam[MAX_COMMAND_LENGTH];
     int buffersize = SMALL_BUFFER_SIZE;
     char user[MAX_USERNAME];
-    Email* emails = (Email *)malloc(sizeof(Email)*MAXMAILS);
+    Email emails[MAXMAILS];
     int curr_email = 1;
-    int i, msg_id, user_msg_id;
     int recipients_amount = 0;
+    int i, k, msg_id, user_msg_id;
     bool breakOuter = false;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         sscanf(buffer, "%s %s", nextCommand, commandParam);
         while(strcmp(nextCommand,"QUIT") != 0){
             if (strcmp(nextCommand,"SHOW_INBOX")==0){
-                for (int k = 1; k < j; k++){
+                for (k = 1; k < j; k++){
                     i = active_user_emails[k];
                     if (emails[i].active){
                         sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
