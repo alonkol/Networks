@@ -9,7 +9,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
-//#include "utils.h"
 
 #define BACKLOG 5
 #define TO_TOTAL 20
@@ -23,6 +22,9 @@
 #define MAXMAILS 32000
 #define DEFAULT_PORT 6423
 #define NUM_OF_CLIENTS 20
+#define MAX_COMMAND_LENGTH 50
+#define SMALL_BUFFER_SIZE 100
+#define BIG_BUFFER_SIZE 5000
 
 int sendall(int s, char *buf, int *len)
 {
@@ -101,12 +103,11 @@ int main(int argc, char* argv[]) {
 
     unsigned short portToListen = DEFAULT_PORT;
 
-
     char* usersFile = argv[1];
     if (argc == 3){
         portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
-    printf("%u\n",portToListen);
+
     printf("creating socket...\r\n");
     int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (mainSocket == -1){
@@ -115,7 +116,6 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    printf("assigning variables for binding...\r\n");
 
     struct sockaddr_in my_addr;
 
@@ -124,8 +124,6 @@ int main(int argc, char* argv[]) {
     my_addr.sin_family = AF_INET;
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     my_addr.sin_port = htons(portToListen);
-
-
 
     printf("binding...\r\n");
     errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, addrlen);
@@ -145,11 +143,11 @@ int main(int argc, char* argv[]) {
 
 
     int newSock;
-    char buffer[1024];
-    char bigBuffer[10*1024];
-    char nextCommand[1024];
-    char commandParam[1024];
-    int buffersize = sizeof(buffer);
+    char buffer[SMALL_BUFFER_SIZE];
+    char bigBuffer[BIG_BUFFER_SIZE];
+    char nextCommand[MAX_COMMAND_LENGTH];
+    char commandParam[MAX_COMMAND_LENGTH];
+    int buffersize = SMALL_BUFFER_SIZE;
     char user[MAX_USERNAME];
     Email* emails = (Email *)malloc(sizeof(Email)*MAXMAILS);
     int curr_email = 1;
@@ -324,8 +322,8 @@ int main(int argc, char* argv[]) {
 }
 
 bool Authenticate(char* usersFile, int socket, char** user){
-    int len = 150;
-    char buffer[150];
+    int len = SMALL_BUFFER_SIZE;
+    char buffer[SMALL_BUFFER_SIZE];
     char checkUsername[MAX_USERNAME];
     char checkPassword[MAX_PASSWORD];
     char username[MAX_USERNAME];
@@ -342,7 +340,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
     // read form file
     FILE* fp = fopen(usersFile, "r");
 
-    while(fgets(buffer, 150, fp) != NULL){
+    while(fgets(buffer, SMALL_BUFFER_SIZE, fp) != NULL){
         sscanf(buffer, "%s\t%s", checkUsername, checkPassword);
         if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0){
             return true;
