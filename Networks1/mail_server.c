@@ -61,10 +61,14 @@ int main(int argc, char* argv[]) {
         portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
 
-    int errcheck;
-    socklen_t addrlen = sizeof(struct sockaddr_in);
+    struct sockaddr_in my_addr;
+    socklen_t addrlen = sizeof(my_addr);
     int mainSocket = init_listen(portToListen);
+    if (mainSocket == -1){
+        return -1;
+    }
 
+    int errcheck;
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
     char nextCommand[MAX_COMMAND_LENGTH], commandParam[MAX_COMMAND_LENGTH];
@@ -252,7 +256,6 @@ int init_listen(unsigned short portToListen){
                        "With error: %s\r\n", strerror(errno));
         return -1;
     }
-
 
     struct sockaddr_in my_addr;
     socklen_t addrlen = sizeof(my_addr);
