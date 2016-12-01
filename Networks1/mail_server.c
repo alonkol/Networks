@@ -373,7 +373,7 @@ int sendall(int s, char *buf)
     int totalLen = strlen(buf);
     short* len_short = (short*)&totalLen;
     char len_string[2];
-    sprintf(len_string,%2i,len_short);
+    sprintf(len_string,"%2i",*len_short);
     n = send(s, len_string, 2, 0);
     if (n == -1)
         {
