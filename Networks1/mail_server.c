@@ -74,7 +74,7 @@ int recvall(int s, char *buf, int *len)
 }
 
 
-bool Authenticate(char* usersFile, int socket, char** user);
+bool Authenticate(char* usersFile, int socket, char* user[]);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
 typedef struct email_content{
@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-bool Authenticate(char* usersFile, int socket, char** user){
+bool Authenticate(char* usersFile, int socket, char* user[]){
     int len = SMALL_BUFFER_SIZE;
     char buffer[SMALL_BUFFER_SIZE];
     char checkUsername[MAX_USERNAME];
