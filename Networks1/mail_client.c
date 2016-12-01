@@ -8,138 +8,7 @@
 #include <netdb.h>
 #include <errno.h>
 
-#define DEFAULT_PORT "6423"
-#define DEFAULT_HOST "localhost"
-#define SUCCESS_MSG "Success"
-#define FAIL_MSG "Failure"
-#define MAX_USERNAME 50
-#define MAX_PASSWORD 50
-#define NUM_OF_CLIENTS 20
-#define MAX_SUBJECT 100
-#define MAX_CONTENT 2000
-#define SMALL_BUFFER_SIZE 100
-#define BIG_BUFFER_SIZE 5000
-
-int sendall(int s, char *buf)
-{
-    int total = 0; /* how many bytes we've sent */
-    int n;
-    // first two bytes will be the message length
-    int totalLen = strlen(buf);
-    short* len_short = (short*)&totalLen;
-    char len_string[2];
-    sprintf(len_string,"%2i",*len_short);
-    n = send(s, len_string, 2, 0);
-    if (n == -1)
-    {
-        printf("Error in function sendall()\r\n"
-               "%s", strerror(errno));
-        return -1;
-    }
-
-    int bytesleft = totalLen;
-    while(total < totalLen)
-    {
-        n = send(s, buf+total, bytesleft, 0);
-        if (n == -1)
-        {
-            printf("Error in function sendall()\r\n"
-                   "%s", strerror(errno));
-            break;
-        }
-        total += n;
-        bytesleft -= n;
-    }
-    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
-}
-
-int recvall(int s, char *buf)
-{
-    int total = 0; /* how many bytes we've received */
-    int n;
-    char len[2];
-
-    // read first two bytes to know how many bytes to read
-    n = recv(s,len, 2,0);
-    if (n == -1)
-    {
-        printf("Error in function recvall()\r\n"
-               "%s", strerror(errno));
-        return -1;
-    }
-    int totalLen = atoi(len);
-    int bytesleft = totalLen;
-    while(total < totalLen)
-    {
-        n = recv(s, buf+total, bytesleft, 0);
-        if (n == -1)
-        {
-            printf("Error in function recvall()\r\n"
-                   "%s", strerror(errno));
-            break;
-        }
-        if (n == 0) // client disconnected
-        {
-            printf("Other side disconnected \r\n");
-            return -1;
-        }
-        total += n;
-        bytesleft -= n;
-    }
-    buf[total]='\0';
-    return n == -1 ? -1:0; /*-1 on failure, 0 on success */
-}
-
-int create_connection(char* hostname, char* portToConnect)
-{
-    int errcheck;
-    int sock;
-    int port;
-    struct addrinfo *serverinfo, *p;
-
-    printf("creating socket...\r\n");
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock < 0)
-    {
-        printf("Could not create socket: %s\n", strerror(errno));
-        return -1;
-    }
-
-    printf("getting address info\r\n");
-    errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
-    if (errcheck < 0)
-    {
-        printf("getaddrinfo() failed: %s\n", strerror(errno));
-        close(sock);
-        return -1;
-    }
-
-    printf("connecting...\r\n");
-    // loop through all the results and connect to the first we can
-    for(p = serverinfo; p != NULL; p = p->ai_next)
-    {
-        errcheck = connect(sock, p->ai_addr, p->ai_addrlen);
-        if (errcheck)
-        {
-            // try the next in list...
-            continue;
-        }
-        break;
-    }
-
-    freeaddrinfo(serverinfo);
-    // if failed - quit!
-    if (errcheck)
-    {
-        printf("Error in function: connect()\r\n"
-               "With error: %s\r\n", strerror(errno));
-        close(sock);
-        return -1;
-    }
-
-    return sock;
-}
-
+int create_connection(char* hostname, char* portToConnect);
 int main(int argc, char* argv[])
 {
     if (argc > 3)
@@ -159,12 +28,13 @@ int main(int argc, char* argv[])
     }
     else if (argc==2)
     {
-        strcpy(portToConnect, DEFAULT_PORT);
+
+        sprintf(portToConnect,"%d", DEFAULT_PORT);
         strcpy(hostname, argv[1]);
     }
     else
     {
-        strcpy(portToConnect,DEFAULT_PORT);
+        sprintf(portToConnect,"%d", DEFAULT_PORT);
         strcpy(hostname, DEFAULT_HOST);
     }
 
@@ -316,4 +186,53 @@ int main(int argc, char* argv[])
     close(sock);
 }
 
+int create_connection(char* hostname, char* portToConnect)
+{
+    int errcheck;
+    int sock;
+    int port;
+    struct addrinfo *serverinfo, *p;
+
+    printf("creating socket...\r\n");
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(sock < 0)
+    {
+        printf("Could not create socket: %s\n", strerror(errno));
+        return -1;
+    }
+
+    printf("getting address info\r\n");
+    errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
+    if (errcheck < 0)
+    {
+        printf("getaddrinfo() failed: %s\n", strerror(errno));
+        close(sock);
+        return -1;
+    }
+
+    printf("connecting...\r\n");
+    // loop through all the results and connect to the first we can
+    for(p = serverinfo; p != NULL; p = p->ai_next)
+    {
+        errcheck = connect(sock, p->ai_addr, p->ai_addrlen);
+        if (errcheck)
+        {
+            // try the next in list...
+            continue;
+        }
+        break;
+    }
+
+    freeaddrinfo(serverinfo);
+    // if failed - quit!
+    if (errcheck)
+    {
+        printf("Error in function: connect()\r\n"
+               "With error: %s\r\n", strerror(errno));
+        close(sock);
+        return -1;
+    }
+
+    return sock;
+}
 
