@@ -17,7 +17,8 @@
 #define NUM_OF_CLIENTS 20
 #define MAX_SUBJECT 100
 #define MAX_CONTENT 2000
-#define MAX_BUFFER 1024
+#define SMALL_BUFFER_SIZE 100
+#define BIG_BUFFER_SIZE 5000
 
 int sendall(int s, char *buf, int *len)
 {
@@ -124,8 +125,8 @@ int main(int argc, char* argv[])
                "mail_client <optional:hostname <optional:port>>\r\n");
         return -1;
     }
-    char portToConnect[MAX_BUFFER];
-    char hostname[MAX_BUFFER];
+    char portToConnect[SMALL_BUFFER_SIZE];
+    char hostname[SMALL_BUFFER_SIZE];
     int sock,errcheck;
 
     if (argc==3)
@@ -154,9 +155,9 @@ int main(int argc, char* argv[])
 
     printf("Receiving greeting...\r\n");
 
-    char buffer[MAX_BUFFER];
-    int buffer_size = MAX_BUFFER;
-    char bigBuffer[10*MAX_BUFFER];
+    char buffer[SMALL_BUFFER_SIZE];
+    int buffer_size = SMALL_BUFFER_SIZE;
+    char bigBuffer[BIG_BUFFER_SIZE];
 
     errcheck = recvall(sock, (char*)&buffer, &buffer_size);
     if (errcheck==-1)
@@ -196,7 +197,7 @@ int main(int argc, char* argv[])
     char to[NUM_OF_CLIENTS];
     char subject[MAX_SUBJECT];
     char content[MAX_CONTENT];
-    char command[MAX_BUFFER];
+    char command[SMALL_BUFFER_SIZE];
 
     while(true)
     {

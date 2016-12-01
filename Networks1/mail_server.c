@@ -22,7 +22,6 @@
 #define MAXMAILS 32000
 #define DEFAULT_PORT 6423
 #define NUM_OF_CLIENTS 20
-#define MAX_COMMAND_LENGTH 50
 #define SMALL_BUFFER_SIZE 100
 #define BIG_BUFFER_SIZE 5000
 
@@ -71,7 +70,7 @@ int main(int argc, char* argv[]) {
     int errcheck;
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
-    char nextCommand[MAX_COMMAND_LENGTH], commandParam[MAX_COMMAND_LENGTH];
+    char nextCommand[SMALL_BUFFER_SIZE], commandParam[SMALL_BUFFER_SIZE];
     int buffersize = SMALL_BUFFER_SIZE;
     char* user = (char*)malloc(MAX_USERNAME);
     Email emails[MAXMAILS];
