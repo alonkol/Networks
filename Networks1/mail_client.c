@@ -26,10 +26,19 @@ int sendall(int s, char *buf)
     int n;
     // first two bytes will be the message length
     int totalLen = strlen(buf);
-    short* len_byte = (short*)&totalLen;
-    sprintf(buf,"%i%s",*len_byte,buf);
-    int bytesleft = totalLen+2;
-    while(total < totalLen+2)
+    short* len_short = (short*)&totalLen;
+    char len_string[2];
+    sprintf(len_string,%2i,len_short);
+    n = send(s, len_string, 2, 0);
+    if (n == -1)
+        {
+            printf("Error in function sendall()\r\n"
+                           "%s", strerror(errno));
+            return -1;
+        }
+
+    int bytesleft = totalLen;
+    while(total < totalLen)
     {
         n = send(s, buf+total, bytesleft, 0);
         if (n == -1)
