@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include "mail_client.h"
 
 int create_connection(char* hostname, char* portToConnect);
 int main(int argc, char* argv[])
