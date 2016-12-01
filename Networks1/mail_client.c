@@ -20,50 +20,62 @@
 #define SMALL_BUFFER_SIZE 100
 #define BIG_BUFFER_SIZE 5000
 
-int sendall(int s, char *buf, int *len)
+int sendall(int s, char *buf)
 {
     int total = 0; /* how many bytes we've sent */
-    int bytesleft = *len; /* how many we have left to send */
     int n;
-    while(total < *len)
+    // first two bytes will be the message length
+    int totalLen = strlen(buf);
+    unsigned short len_byte = (short*)&totalLen;
+    sprintf(buf,"%hu%s",len_byte,buf);
+    int bytesleft = totalLen+2;
+    while(total < totalLen+2)
     {
         n = send(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
             printf("Error in function sendall()\r\n"
-                   "%s", strerror(errno));
+                           "%s", strerror(errno));
             break;
         }
         total += n;
         bytesleft -= n;
     }
-    *len = total; /* return number actually sent here */
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
-int recvall(int s, char *buf, int *len)
+int recvall(int s, char *buf)
 {
-    int total = 0; /* how many bytes we've recieved */
-    int bytesleft = *len; /* how many we have left to recieve */
+    int total = 0; /* how many bytes we've received */
     int n;
-    while(total < *len)
+    char len[2];
+
+    // read first two bytes to know how many bytes to read
+    n = recv(s,len, 2,0);
+    if (n == -1){
+            printf("Error in function recvall()\r\n"
+                           "%s", strerror(errno));
+            break;
+    }
+    int totalLen = atoi(len);
+    int bytesleft = totalLen;
+    while(total < totalLen)
     {
         n = recv(s, buf+total, bytesleft, 0);
         if (n == -1)
         {
             printf("Error in function recvall()\r\n"
-                   "%s", strerror(errno));
+                           "%s", strerror(errno));
             break;
         }
         if (n == 0) // client disconnected
         {
-            printf("Other side disconnected\r\n");
+            printf("Other side disconnected \r\n");
             return -1;
         }
         total += n;
         bytesleft -= n;
     }
-    *len = total; /* return number actually sent here */
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
@@ -227,7 +239,6 @@ int main(int argc, char* argv[])
                     break;
                 }
             }
-            printf("End of inbox\n");
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
@@ -289,7 +300,6 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"QUIT")==0)
         {
-            printf("IN QUIT");
             break;
         }
         else

@@ -367,12 +367,16 @@ int get_msg_id(char* commandParam, int* active_user_emails){
 }
 
 
-int sendall(int s, char *buf, int *len)
+int sendall(int s, char *buf)
 {
     int total = 0; /* how many bytes we've sent */
-    int bytesleft = *len; /* how many we have left to send */
     int n;
-    while(total < *len)
+    // first two bytes will be the message length
+    int totalLen = strlen(buf);
+    unsigned short len_byte = (short*)&totalLen;
+    sprintf(buf,"%hu%s",len_byte,buf);
+    int bytesleft = totalLen+2;
+    while(total < totalLen+2)
     {
         n = send(s, buf+total, bytesleft, 0);
         if (n == -1)
@@ -384,16 +388,25 @@ int sendall(int s, char *buf, int *len)
         total += n;
         bytesleft -= n;
     }
-    *len = total; /* return number actually sent here */
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
-int recvall(int s, char *buf, int *len)
+int recvall(int s, char *buf)
 {
     int total = 0; /* how many bytes we've received */
-    int bytesleft = *len; /* how many we have left to receive */
     int n;
-    while(total < *len)
+    char len[2];
+
+    // read first two bytes to know how many bytes to read
+    n = recv(s,len, 2,0);
+    if (n == -1){
+            printf("Error in function recvall()\r\n"
+                           "%s", strerror(errno));
+            break;
+    }
+    int totalLen = atoi(len);
+    int bytesleft = totalLen;
+    while(total < totalLen)
     {
         n = recv(s, buf+total, bytesleft, 0);
         if (n == -1)
@@ -410,6 +423,5 @@ int recvall(int s, char *buf, int *len)
         total += n;
         bytesleft -= n;
     }
-    *len = total; /* return number actually sent here */
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
