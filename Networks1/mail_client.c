@@ -7,11 +7,11 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
-//#include "utils.h"
 
 #define DEFAULT_PORT "6423"
 #define DEFAULT_HOST "localhost"
 #define SUCCESS_MSG "Success"
+#define FAIL_MSG "Failure"
 #define MAX_USERNAME 50
 #define MAX_PASSWORD 50
 #define NUM_OF_CLIENTS 20
@@ -231,13 +231,13 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
-            int bigbuffersize= sizeof(bigBuffer);
+            int bigbuffersize = BIG_BUFFER_SIZE;
             errcheck=recvall(sock, (char*)&bigBuffer, &bigbuffersize);
             if (errcheck==-1)
             {
                 break;
             }
-            if (strcmp(bigBuffer,SUCCESS_MSG)!=0)
+            if (strcmp(bigBuffer,FAIL_MSG)==0)
             {
                 printf("oops, can't find the mail you requested...\r\n");
             }

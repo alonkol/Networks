@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
                 if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0){
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
-                    int bigbuffersize = sizeof(bigBuffer);
+                    int bigbuffersize = BIG_BUFFER_SIZE;
                     errcheck = sendall(newSock, (char *)&bigBuffer, &bigbuffersize);
                     if (errcheck == -1)
                     {
