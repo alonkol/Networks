@@ -351,7 +351,7 @@ bool Authenticate(char* usersFile, int socket, char** user){
 }
 
 char** ExtractRecipients(char* recipients_string, int* amount){
-    char recipients[TO_TOTAL][MAX_USERNAME];
+    char** recipients = (char**)malloc(sizeof(char*)*TO_TOTAL);
     int i, j, cnt;
     char curr_recipient[MAX_USERNAME];
     cnt = 0;
@@ -359,6 +359,7 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     for (i = 0, j = 0; i < strlen(recipients_string); i++){
         if (recipients_string[i] == ','){
             curr_recipient[j] = '\0';
+            recipients[cnt] = (char*)malloc(j);
             strcpy(recipients[cnt],curr_recipient);
             cnt++;
             j=0;
@@ -369,6 +370,7 @@ char** ExtractRecipients(char* recipients_string, int* amount){
     }
 
     curr_recipient[j] = '\0';
+    recipients[cnt] = (char*)malloc(j);
     strcpy(recipients[cnt],curr_recipient);
     cnt++;
     *amount = cnt;
