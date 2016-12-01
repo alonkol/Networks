@@ -1,9 +1,11 @@
 TODO:
 
-6. documentation in code and out of code (in the assignment)
+6. protocol pdf
 7. shutdown bonus
-8. memory leaks
-11.makefile
+ 
+can't really check for server cause it can't be properly closed only by ctrl-c
+Is there suppose to be a way to close it?)
+
 
 
 
@@ -17,3 +19,5 @@ then if it happens, get out of loop for server or terminate if client
 sendall should send the correct number of bytes and make sure he gets that number returning from send all.
 recvall should first read first byte to know how much bytes needs to be read, and then read this amount 
 (and make sure it is the value returned from recvall)
+(DONE) 11.makefile
+8. memory leaks (NO NEED)
