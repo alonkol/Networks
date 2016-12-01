@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include <unistd.h>
 #include "mail_server.h"
 
 int main(int argc, char* argv[])
@@ -25,7 +26,7 @@ int main(int argc, char* argv[])
     char* usersFile = argv[1];
     if (argc == 3)
     {
-        portToListen = (u_short) strtoul(argv[2], NULL, 0);
+        portToListen = (unsigned short) strtoul(argv[2], NULL, 0);
     }
 
     struct sockaddr_in my_addr;
@@ -43,7 +44,7 @@ int main(int argc, char* argv[])
     char* user = (char*)malloc(MAX_USERNAME);
     Email emails[MAXMAILS+1];
     int curr_email = 1, recipients_amount = 0;
-    int i, k, msg_id, user_msg_id;
+    int i, k, msg_id;
     bool breakOuter = false;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
@@ -163,7 +164,6 @@ int main(int argc, char* argv[])
                 {
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
-                    int bigbuffersize = BIG_BUFFER_SIZE;
                     errcheck = sendall(newSock, (char *)&bigBuffer);
                     if (errcheck == -1)
                     {

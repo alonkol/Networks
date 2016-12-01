@@ -1,15 +1,19 @@
-#First for the server
-CC = gcc
-OBJS = mail_server.o utils.o
-EXEC = mail_server
-COMP_FLAG = -std=c99 -g -Wall -Wextra \
--Werror -pedantic-errors
+CC = gcc -D_GNU_SOURCE
+COMP_FLAG = -std=c99 -g -Wall 
 
-$(EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@
+all: mail_server mail_client
+
+mail_server.o: mail_server.c mail_server.h utils.h
+	$(CC) $(COMP_FLAG) -c mail_server.c
+mail_client.o: mail_client.c mail_client.h utils.h
+	$(CC) $(COMP_FLAG) -c mail_client.c
 utils.o: utils.c utils.h
-	$(CC) $(COMP_FLAG) -c $*.c
-mail_server.o: mail_server.h mail_Server.c
-	$(CC) $(COMP_FLAG) -c $*.c
+	$(CC) $(COMP_FLAG) -c utils.c
+
+mail_server: mail_server.o utils.o
+	$(CC) $(COMP_FLAG) mail_server.o utils.o -o mail_server
+mail_client: mail_client.o utils.o
+	$(CC) $(COMP_FLAG) mail_client.o utils.o -o mail_client
+
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f *.o mail_client mail_server

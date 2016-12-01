@@ -7,9 +7,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <errno.h>
+#include <unistd.h>
 #include "mail_client.h"
 
-int create_connection(char* hostname, char* portToConnect);
 int main(int argc, char* argv[])
 {
     if (argc > 3)
@@ -191,7 +191,6 @@ int create_connection(char* hostname, char* portToConnect)
 {
     int errcheck;
     int sock;
-    int port;
     struct addrinfo *serverinfo, *p;
 
     printf("creating socket...\r\n");
