@@ -20,6 +20,15 @@ int main(int argc, char* argv[])
     }
     char portToConnect[SMALL_BUFFER_SIZE];
     char hostname[SMALL_BUFFER_SIZE];
+    char buffer[SMALL_BUFFER_SIZE];
+    char bigBuffer[BIG_BUFFER_SIZE];
+    char user[MAX_USERNAME];
+    char password[MAX_PASSWORD];
+    char from[MAX_USERNAME*NUM_OF_CLIENTS];
+    char to[NUM_OF_CLIENTS];
+    char subject[MAX_SUBJECT];
+    char content[MAX_CONTENT];
+    char command[SMALL_BUFFER_SIZE];
     int sock,errcheck;
 
     if (argc==3)
@@ -39,7 +48,7 @@ int main(int argc, char* argv[])
         strcpy(hostname, DEFAULT_HOST);
     }
 
-    printf("Creating connection\r\n");
+    // Creating connection
     sock = create_connection(hostname,portToConnect);
     if (sock == -1)
     {
@@ -47,22 +56,16 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    printf("Receiving greeting...\r\n");
-
-    char buffer[SMALL_BUFFER_SIZE];
-    char bigBuffer[BIG_BUFFER_SIZE];
+    // Receiving greeting...
 
     errcheck = recvall(sock, (char*)&buffer);
     if (errcheck==-1)
     {
         return -1;
     }
-    printf("greeting: %s\r\n",buffer);
+    printf("%s\r\n",buffer);
 
-    char user[MAX_USERNAME];
-    char password[MAX_PASSWORD];
-
-    printf("Waiting for username and password\r\n");
+    // Waiting for username and password
     scanf("User: %s", user);
     getchar();
     scanf("Password: %[^\n]s", password);
@@ -71,7 +74,7 @@ int main(int argc, char* argv[])
     sprintf(buffer, "%s;%s", user, password);
     sendall(sock, (char *)&buffer);
 
-    printf("Waiting for server to react....\r\n");
+    // Waiting for server to react to authentication....
     errcheck = recvall(sock, (char*)&buffer);
     if (errcheck==-1)
     {
@@ -84,17 +87,9 @@ int main(int argc, char* argv[])
         close(sock);
         return -1;
     }
-    printf("Connection established....\r\n");
-
-    char from[MAX_USERNAME*NUM_OF_CLIENTS];
-    char to[NUM_OF_CLIENTS];
-    char subject[MAX_SUBJECT];
-    char content[MAX_CONTENT];
-    char command[SMALL_BUFFER_SIZE];
 
     while(true)
     {
-        printf("Enter Command:\r\n");
         scanf("%[^\n]s",buffer);
         getchar();
         if ((errcheck = sendall(sock, (char *)&buffer))==-1)
@@ -132,6 +127,7 @@ int main(int argc, char* argv[])
             }
             else
             {
+                // parsing buffer so it will be printed nicely
                 sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
                 printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
             }
@@ -149,6 +145,7 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"COMPOSE")==0)
         {
+            // preparing buffer to send
             scanf("To: %[^\n]s", to);
             getchar();
             scanf("Subject: %[^\n]s", subject);
@@ -172,7 +169,7 @@ int main(int argc, char* argv[])
             }
             else
             {
-                printf("Message sent..\r\n");
+                printf("Mail sent\r\n");
             }
         }
         else if (strcmp(command,"QUIT")==0)
@@ -193,7 +190,7 @@ int create_connection(char* hostname, char* portToConnect)
     int sock;
     struct addrinfo *serverinfo, *p;
 
-    printf("creating socket...\r\n");
+    // creating socket...
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0)
     {
@@ -201,7 +198,7 @@ int create_connection(char* hostname, char* portToConnect)
         return -1;
     }
 
-    printf("getting address info\r\n");
+    // getting address info....
     errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
     if (errcheck < 0)
     {
@@ -210,7 +207,7 @@ int create_connection(char* hostname, char* portToConnect)
         return -1;
     }
 
-    printf("connecting...\r\n");
+    // connecting...
     // loop through all the results and connect to the first we can
     for(p = serverinfo; p != NULL; p = p->ai_next)
     {
