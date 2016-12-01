@@ -28,7 +28,7 @@
 
 int sendall(int s, char *buf, int *len);
 int recvall(int s, char *buf, int *len);
-int init_listen(unsigned short portToListen, socklen_t* addrlen);
+int init_listen(unsigned short portToListen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
 
@@ -62,8 +62,8 @@ int main(int argc, char* argv[]) {
     }
 
     int errcheck;
-    socklen_t addrlen;
-    int mainSocket = init_listen(portToListen, &addrlen);
+    socklen_t addrlen = sizeof(struct sockaddr_in);
+    int mainSocket = init_listen(portToListen);
 
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
@@ -242,7 +242,7 @@ int main(int argc, char* argv[]) {
     }
 }
 
-int init_listen(unsigned short portToListen, socklen_t* addrlen){
+int init_listen(unsigned short portToListen){
     int errcheck;
 
     printf("creating socket...\r\n");
@@ -255,14 +255,14 @@ int init_listen(unsigned short portToListen, socklen_t* addrlen){
 
 
     struct sockaddr_in my_addr;
-    *addrlen = sizeof(my_addr);
+    socklen_t addrlen = sizeof(my_addr);
 
     my_addr.sin_family = AF_INET;
     my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     my_addr.sin_port = htons(portToListen);
 
     printf("binding...\r\n");
-    errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, *addrlen);
+    errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, addrlen);
     if (errcheck == -1){
         printf("Error in function: bind()\r\n"
                        "With error: %s\r\n", strerror(errno));
@@ -361,8 +361,8 @@ int sendall(int s, char *buf, int *len)
 
 int recvall(int s, char *buf, int *len)
 {
-    int total = 0; /* how many bytes we've recieved */
-    int bytesleft = *len; /* how many we have left to recieve */
+    int total = 0; /* how many bytes we've received */
+    int bytesleft = *len; /* how many we have left to receive */
     int n;
     while(total < *len)
     {
@@ -375,7 +375,7 @@ int recvall(int s, char *buf, int *len)
         }
         if (n == 0) // client disconnected
         {
-            printf("Other side disconnected\r\n");
+            printf("Other side disconnected \r\n");
             return -1;
         }
         total += n;
