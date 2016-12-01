@@ -161,7 +161,7 @@ int main(int argc, char* argv[])
     errcheck = recvall(sock, (char*)&buffer, &buffer_size);
     if (errcheck==-1)
     {
-        break;
+        return -1;
     }
     printf("greeting: %s\r\n",buffer);
 
@@ -181,14 +181,14 @@ int main(int argc, char* argv[])
     errcheck = recvall(sock, (char*)&buffer, &buffer_size);
     if (errcheck==-1)
     {
-        break;
+        return -1;
     }
 
     if (strcmp(buffer,SUCCESS_MSG)!=0)
     {
         printf("Connection failed....\r\n Exiting....\r\n");
         close(sock);
-        return 1;
+        return -1;
     }
     printf("Connection established....\r\n");
 
