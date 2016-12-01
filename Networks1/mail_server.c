@@ -108,50 +108,16 @@ int main(int argc, char* argv[]) {
         portToListen = (u_short) strtoul(argv[2], NULL, 0);
     }
 
-    printf("creating socket...\r\n");
-    int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mainSocket == -1){
-        printf("Error in function: socket()\r\n"
-                       "With error: %s\r\n", strerror(errno));
-        return -1;
-    }
-
-
-    struct sockaddr_in my_addr;
-
-    socklen_t addrlen = sizeof(my_addr);
-
-    my_addr.sin_family = AF_INET;
-    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    my_addr.sin_port = htons(portToListen);
-
-    printf("binding...\r\n");
-    errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, addrlen);
-    if (errcheck == -1){
-        printf("Error in function: bind()\r\n"
-                       "With error: %s\r\n", strerror(errno));
-        return -1;
-    }
-
-    printf("listening...\r\n");
-    errcheck = listen(mainSocket, BACKLOG);
-    if (errcheck == -1){
-        printf("Error in function: listen()\r\n"
-                       "With error: %s\r\n", strerror(errno));
-        return -1;
-    }
-
+    socklen_t addrlen;
+    int mainSocket = initialize_listen(&addrlen);
 
     int newSock;
-    char buffer[SMALL_BUFFER_SIZE];
-    char bigBuffer[BIG_BUFFER_SIZE];
-    char nextCommand[MAX_COMMAND_LENGTH];
-    char commandParam[MAX_COMMAND_LENGTH];
+    char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
+    char nextCommand[MAX_COMMAND_LENGTH], commandParam[MAX_COMMAND_LENGTH];
     int buffersize = SMALL_BUFFER_SIZE;
     char* user = (char*)malloc(MAX_USERNAME);
     Email emails[MAXMAILS];
-    int curr_email = 1;
-    int recipients_amount = 0;
+    int curr_email = 1, recipients_amount = 0;
     int i, k, msg_id, user_msg_id;
     bool breakOuter = false;
 
@@ -223,6 +189,7 @@ int main(int argc, char* argv[]) {
                         if (errcheck == -1)
                         {
                             breakOuter = true;
+                            break;
                         }
                     }
                 }
@@ -319,6 +286,44 @@ int main(int argc, char* argv[]) {
         printf("Closing...\r\n");
         close(newSock);
     }
+}
+
+int initialize_listen(socklen_t* addrlen){
+
+    printf("creating socket...\r\n");
+    int mainSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (mainSocket == -1){
+        printf("Error in function: socket()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
+
+
+    struct sockaddr_in my_addr;
+
+    *addrlen = sizeof(my_addr);
+
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    my_addr.sin_port = htons(portToListen);
+
+    printf("binding...\r\n");
+    errcheck = bind(mainSocket, (const struct sockaddr*)&my_addr, *addrlen);
+    if (errcheck == -1){
+        printf("Error in function: bind()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
+
+    printf("listening...\r\n");
+    errcheck = listen(mainSocket, BACKLOG);
+    if (errcheck == -1){
+        printf("Error in function: listen()\r\n"
+                       "With error: %s\r\n", strerror(errno));
+        return -1;
+    }
+
+    return mainSocket;
 }
 
 bool Authenticate(char* usersFile, int socket, char** user){

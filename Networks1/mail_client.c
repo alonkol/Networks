@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     printf("Receiving greeting...\r\n");
 
     char buffer[MAX_BUFFER];
-    int buffer_size = sizeof(buffer);
+    int buffer_size = MAX_BUFFER;
     char bigBuffer[10*MAX_BUFFER];
 
     errcheck = recvall(sock, (char*)&buffer, &buffer_size);
