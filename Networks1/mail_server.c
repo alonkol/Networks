@@ -25,8 +25,8 @@
 #define SMALL_BUFFER_SIZE 100
 #define BIG_BUFFER_SIZE 5000
 
-int sendall(int s, char *buf, int *len);
-int recvall(int s, char *buf, int *len);
+int sendall(int s, char *buf);
+int recvall(int s, char *buf);
 int init_listen(unsigned short portToListen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
@@ -371,8 +371,8 @@ int sendall(int s, char *buf)
     int n;
     // first two bytes will be the message length
     int totalLen = strlen(buf);
-    unsigned short len_byte = (short*)&totalLen;
-    sprintf(buf,"%hu%s",len_byte,buf);
+    short* len_byte = (short*)&totalLen;
+    sprintf(buf,"%i%s",*len_byte,buf);
     int bytesleft = totalLen+2;
     while(total < totalLen+2)
     {
@@ -400,7 +400,7 @@ int recvall(int s, char *buf)
     if (n == -1){
             printf("Error in function recvall()\r\n"
                            "%s", strerror(errno));
-            break;
+            return -1;
     }
     int totalLen = atoi(len);
     int bytesleft = totalLen;
