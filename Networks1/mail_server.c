@@ -1,3 +1,16 @@
+#include <sys/types.h>
+#include <stddef.h>
+#include <stdbool.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <errno.h>
+#include <unistd.h>
+#include "utils.h"
 #include "mail_server.h"
 
 int main(int argc, char* argv[])

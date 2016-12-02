@@ -1,17 +1,3 @@
-#include <sys/types.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
-#include <unistd.h>
-#include "utils.h"
-
 int init_listen(unsigned short portToListen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
