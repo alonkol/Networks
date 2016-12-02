@@ -30,6 +30,7 @@ int main(int argc, char* argv[])
     char subject[MAX_SUBJECT];
     char content[MAX_CONTENT];
     char command[SMALL_BUFFER_SIZE];
+    bool breakOuter = false;
     int sock;
 
     if (argc==3)
@@ -114,8 +115,12 @@ int main(int argc, char* argv[])
                 printf("%s\n", buffer);
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
-                    break; // this only breaks the inner loop
+                    breakOuter=true
+                    break;
                 }
+            }
+            if (breakOuter==true){
+                break;
             }
         }
         else if (strcmp(command,"GET_MAIL")==0)
