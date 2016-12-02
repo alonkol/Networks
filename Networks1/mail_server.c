@@ -219,12 +219,7 @@ int main(int argc, char* argv[])
             sscanf(buffer, "%s %s", nextCommand, commandParam);
         }
         printf("Closing connection...\r\n");
-        shutdown(newSock, SHUT_WR);
-        int res = 1;
-        while(res > 0) { // if no more data to read, or error in reading - close socket
-            res = read(sock, buffer, 4000);
-        }
-        close(newSock);
+        safe_shutdown(newSock, buffer);
     }
 }
 

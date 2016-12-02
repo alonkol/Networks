@@ -173,12 +173,7 @@ int main(int argc, char* argv[])
         }
     }
     // closing connection
-    shutdown(sock, SHUT_WR);
-    int res = 1;
-    while(res > 0) { // if no more data to read, or error in reading - close socket
-        res = read(sock, buffer, 4000);
-    }
-    close(sock);
+    safe_shutdown(sock, buffer);
 }
 
 int create_connection(char* hostname, char* portToConnect)

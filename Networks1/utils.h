@@ -20,3 +20,4 @@
 
 int sendall(int s, char *buf);
 int recvall(int s, char *buf);
+void safe_shutdown(int newSock, char* buffer);

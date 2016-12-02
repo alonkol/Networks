@@ -79,3 +79,14 @@ int recvall(int s, char *buf)
     buf[total]='\0';
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
+
+void safe_shutdown(int newSock, char* buffer)
+{
+    shutdown(newSock, SHUT_WR);
+    int res = 1;
+    while(res > 0) { // if no more data to read, or error in reading - close socket
+    res = recv(sock, buffer, 4000);
+    }
+    close(newSock);
+}
+
