@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
                 printf("%s\n", buffer);
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
-                    breakOuter=true
+                    breakOuter=true;
                     break;
                 }
             }
