@@ -39,7 +39,6 @@ int main(int argc, char* argv[])
     }
     else if (argc==2)
     {
-
         sprintf(portToConnect,"%d", DEFAULT_PORT);
         strcpy(hostname, argv[1]);
     }
@@ -67,9 +66,9 @@ int main(int argc, char* argv[])
 
     // Waiting for username and password
     scanf("User: %s", user);
-    getchar();
+    getchar(); // ignore \n char
     scanf("Password: %[^\n]s", password);
-    getchar();
+    getchar(); // ignore \n char
 
     sprintf(buffer, "%s;%s", user, password);
     if (sendall(sock, (char *)&buffer) == -1)
@@ -91,6 +90,8 @@ int main(int argc, char* argv[])
         close(sock);
         return -1;
     }
+
+    printf("Connected to server\r\n");
 
     while(true)
     {
