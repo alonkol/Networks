@@ -1,15 +1,3 @@
-#include <sys/types.h>
-#include <stddef.h>
-#include <stdbool.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
-#include <unistd.h>
 #include "mail_server.h"
 
 int main(int argc, char* argv[])
@@ -37,7 +25,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int errcheck;
     int newSock;
     char buffer[SMALL_BUFFER_SIZE], bigBuffer[BIG_BUFFER_SIZE];
     char nextCommand[SMALL_BUFFER_SIZE], commandParam[SMALL_BUFFER_SIZE];
@@ -61,8 +48,7 @@ int main(int argc, char* argv[])
         printf("Accepted new client\r\n");
 
         strcpy(buffer, GREETING);
-        errcheck = sendall(newSock, (char *)&buffer);
-        if (errcheck == -1)
+        if (sendall(newSock, (char *)&buffer) == -1)
         {
             close(newSock);
             continue;
@@ -81,8 +67,7 @@ int main(int argc, char* argv[])
 
         // sendall authentication successful message to client
         strcpy(buffer, SUCCESS_MSG);
-        errcheck = sendall(newSock, (char *)&buffer);
-        if (errcheck == -1)
+        if (sendall(newSock, (char *)&buffer) == -1)
         {
             close(newSock);
             continue;
@@ -102,8 +87,7 @@ int main(int argc, char* argv[])
 
         // accept commands
         printf("Waiting for command...\r\n");
-        errcheck = recvall(newSock, (char*)&buffer);
-        if (errcheck == -1)
+        if (recvall(newSock, (char*)&buffer) == -1)
         {
             close(newSock);
             continue;
@@ -119,8 +103,7 @@ int main(int argc, char* argv[])
                     if (emails[i].active)
                     {
                         sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
-                        errcheck = sendall(newSock, (char *)&buffer);
-                        if (errcheck == -1)
+                        if (sendall(newSock, (char *)&buffer) == -1)
                         {
                             breakOuter = true;
                             break;
@@ -133,8 +116,8 @@ int main(int argc, char* argv[])
                     break;
                 }
                 sprintf(buffer, "END");
-                errcheck = sendall(newSock, (char *)&buffer);
-                if (errcheck == -1)
+
+                if (sendall(newSock, (char *)&buffer) == -1)
                 {
                     break;
                 }
@@ -142,30 +125,12 @@ int main(int argc, char* argv[])
             else if (strcmp(nextCommand,"GET_MAIL")==0)
             {
                 msg_id = get_msg_id(commandParam, active_user_emails);
-                if (msg_id == -1)
-                {
-                    strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer);
-                    if (errcheck == -1)
-                    {
-                        break;
-                    }
-                    printf("Waiting for command...\r\n");
-                    errcheck = recvall(newSock, (char*)&buffer);
-                    if (errcheck == -1)
-                    {
-                        break;
-                    }
-                    sscanf(buffer, "%s %s", nextCommand, commandParam);
-                    continue;
-                }
 
-                if (emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0)
+                if (msg_id != -1 && emails[msg_id].active && strcmp(emails[msg_id].to, user) == 0)
                 {
                     sprintf(bigBuffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                             emails[msg_id].content->title, emails[msg_id].content->text);
-                    errcheck = sendall(newSock, (char *)&bigBuffer);
-                    if (errcheck == -1)
+                    if (sendall(newSock, (char *)&bigBuffer) == -1)
                     {
                         break;
                     }
@@ -173,8 +138,7 @@ int main(int argc, char* argv[])
                 else
                 {
                     strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer);
-                    if (errcheck == -1)
+                    if (sendall(newSock, (char *)&buffer) == -1)
                     {
                         break;
                     }
@@ -183,25 +147,8 @@ int main(int argc, char* argv[])
             else if (strcmp(nextCommand,"DELETE_MAIL")==0)
             {
                 msg_id = get_msg_id(commandParam, active_user_emails);
-                if (msg_id == -1)
-                {
-                    strcpy(buffer, FAIL_MSG);
-                    errcheck = sendall(newSock, (char *)&buffer);
-                    if (errcheck == -1)
-                    {
-                        break;
-                    }
-                    printf("Waiting for command...\r\n");
-                    errcheck = recvall(newSock, (char*)&buffer);
-                    if (errcheck == -1)
-                    {
-                        break;
-                    }
-                    sscanf(buffer, "%s %s", nextCommand, commandParam);
-                    continue;
-                }
 
-                if (strcmp(user, emails[msg_id].to) == 0)
+                if (msg_id != -1 && strcmp(user, emails[msg_id].to) == 0)
                 {
                     emails[msg_id].active = false;
                     strcpy(buffer, SUCCESS_MSG);
@@ -210,16 +157,24 @@ int main(int argc, char* argv[])
                 {
                     strcpy(buffer, FAIL_MSG);
                 }
-                errcheck = sendall(newSock, (char *)&buffer);
-                if (errcheck == -1)
+
+                if (sendall(newSock, (char *)&buffer) == -1)
                 {
                     break;
                 }
             }
             else if (strcmp(nextCommand,"COMPOSE")==0)
             {
-                errcheck = recvall(newSock, (char*)&buffer);
-                if (errcheck == -1)
+                if (curr_email >= MAXMAILS){
+                    strcpy(buffer, FAIL_MSG);
+                    if (sendall(newSock, (char *)&buffer) == -1)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+
+                if (recvall(newSock, (char*)&buffer) == -1)
                 {
                     break;
                 }
@@ -251,21 +206,24 @@ int main(int argc, char* argv[])
                 }
 
                 strcpy(buffer, SUCCESS_MSG);
-                errcheck = sendall(newSock, (char *)&buffer);
-                if (errcheck == -1)
+                if (sendall(newSock, (char *)&buffer) == -1)
                 {
                     break;
                 }
             }
             printf("Waiting for command...\r\n");
-            errcheck = recvall(newSock, (char*)&buffer);
-            if (errcheck == -1)
+            if (recvall(newSock, (char*)&buffer) == -1)
             {
                 break;
             }
             sscanf(buffer, "%s %s", nextCommand, commandParam);
         }
-        printf("Closing...\r\n");
+        printf("Closing connection...\r\n");
+        shutdown(newSock, SHUT_WR);
+        int res = 1;
+        while(res > 0) { // if no more data to read, or error in reading - close socket
+            res = read(sock, buffer, 4000);
+        }
         close(newSock);
     }
 }

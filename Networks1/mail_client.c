@@ -1,13 +1,3 @@
-#include <stdbool.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <errno.h>
-#include <unistd.h>
 #include "mail_client.h"
 
 int main(int argc, char* argv[])
@@ -29,7 +19,7 @@ int main(int argc, char* argv[])
     char subject[MAX_SUBJECT];
     char content[MAX_CONTENT];
     char command[SMALL_BUFFER_SIZE];
-    int sock,errcheck;
+    int sock;
 
     if (argc==3)
     {
@@ -52,15 +42,14 @@ int main(int argc, char* argv[])
     sock = create_connection(hostname,portToConnect);
     if (sock == -1)
     {
-        // it means we failed to create connection (error message already printed)
-        return 1;
+        // failed to create connection (error message already printed)
+        return -1;
     }
 
     // Receiving greeting...
-
-    errcheck = recvall(sock, (char*)&buffer);
-    if (errcheck==-1)
+    if (recvall(sock, (char*)&buffer) == -1)
     {
+        close(sock);
         return -1;
     }
     printf("%s\r\n",buffer);
@@ -72,16 +61,20 @@ int main(int argc, char* argv[])
     getchar();
 
     sprintf(buffer, "%s;%s", user, password);
-    sendall(sock, (char *)&buffer);
-
-    // Waiting for server to react to authentication....
-    errcheck = recvall(sock, (char*)&buffer);
-    if (errcheck==-1)
+    if (sendall(sock, (char *)&buffer) == -1)
     {
+        close(sock);
         return -1;
     }
 
-    if (strcmp(buffer,SUCCESS_MSG)!=0)
+    // Waiting for server to react to authentication....
+    if (recvall(sock, (char*)&buffer)==-1)
+    {
+        close(sock);
+        return -1;
+    }
+
+    if (strcmp(buffer,FAIL_MSG)==0)
     {
         printf("Authentication failed....\r\n Exiting....\r\n");
         close(sock);
@@ -92,7 +85,7 @@ int main(int argc, char* argv[])
     {
         scanf("%[^\n]s",buffer);
         getchar();
-        if ((errcheck = sendall(sock, (char *)&buffer))==-1)
+        if (sendall(sock, (char *)&buffer) == -1)
         {
             break;
         }
@@ -100,24 +93,22 @@ int main(int argc, char* argv[])
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
-            errcheck = recvall(sock, (char*)&buffer);
-            if (errcheck==-1)
+            if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
             }
             while (strcmp(buffer,"END")!=0)
             {
                 printf("%s\n", buffer);
-                errcheck = recvall(sock, (char*)&buffer);
-                if (errcheck==-1)
+                if (recvall(sock, (char*)&buffer) == -1)
                 {
-                    break;
+                    break; // this only breaks the inner loop
                 }
             }
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
-            if ((errcheck=recvall(sock, (char*)&bigBuffer))==-1)
+            if (recvall(sock, (char*)&bigBuffer)==-1)
             {
                 break;
             }
@@ -129,43 +120,43 @@ int main(int argc, char* argv[])
             {
                 // parsing buffer so it will be printed nicely
                 sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
-                printf("From: %s\nTo: %s\nSubject: %s\nText: %s\n",from,to,subject,content);
+                printf("From: %s\r\nTo: %s\r\nSubject: %s\r\nText: %s\r\n",from,to,subject,content);
             }
         }
-        else if (strcmp(command,"DELETE_MAIL")==0)
+        else if (strcmp(command,"DELETE_MAIL") == 0)
         {
-            if ((errcheck= recvall(sock, (char*)&buffer))==-1)
+            if (recvall(sock, (char*)&buffer) == -1)
+            {
+                break;
+            }
+            if (strcmp(buffer,FAIL_MSG) == 0)
+            {
+                printf("oops, can't delete the mail you requested...\r\n");
+            }
+        }
+        else if (strcmp(command,"COMPOSE") == 0)
+        {
+            // preparing buffer to send
+            scanf("To: %[^\n]s", to);
+            getchar(); // ignore \n char
+            scanf("Subject: %[^\n]s", subject);
+            getchar(); // ignore \n char
+            scanf("Text: %[^\n]s", content);
+            getchar(); // ignore \n char
+            sprintf(buffer,"%s;%s;%s", to,subject,content);
+
+            if (sendall(sock, (char *)&buffer)==-1)
+            {
+                break;
+            }
+
+            if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
             }
             if (strcmp(buffer,FAIL_MSG)==0)
             {
-                printf("oops, can't delete the mail you requested...\r\n");
-            }
-        }
-        else if (strcmp(command,"COMPOSE")==0)
-        {
-            // preparing buffer to send
-            scanf("To: %[^\n]s", to);
-            getchar();
-            scanf("Subject: %[^\n]s", subject);
-            getchar();
-            scanf("Text: %[^\n]s", content);
-            getchar();
-            sprintf(buffer,"%s;%s;%s", to,subject,content);
-
-            if ((errcheck=sendall(sock, (char *)&buffer))==-1)
-            {
-                break;
-            }
-
-            if ((errcheck = recvall(sock, (char*)&buffer))==-1)
-            {
-                break;
-            }
-            if (strcmp(buffer,SUCCESS_MSG)!=0)
-            {
-                printf("Error in compose...\r\n Exiting... \r\n");
+                printf("Error in compose... \r\n");
             }
             else
             {
@@ -181,6 +172,12 @@ int main(int argc, char* argv[])
             printf("Command not supported.\r\n");
         }
     }
+    // closing connection
+    shutdown(sock, SHUT_WR);
+    int res = 1;
+    while(res > 0) { // if no more data to read, or error in reading - close socket
+        res = read(sock, buffer, 4000);
+    }
     close(sock);
 }
 
@@ -194,7 +191,7 @@ int create_connection(char* hostname, char* portToConnect)
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0)
     {
-        printf("Could not create socket: %s\n", strerror(errno));
+        printf("Could not create socket: %s\r\n", strerror(errno));
         return -1;
     }
 
@@ -202,7 +199,7 @@ int create_connection(char* hostname, char* portToConnect)
     errcheck = getaddrinfo(hostname, portToConnect, NULL, &serverinfo);
     if (errcheck < 0)
     {
-        printf("getaddrinfo() failed: %s\n", strerror(errno));
+        printf("getaddrinfo() failed: %s\r\n", strerror(errno));
         close(sock);
         return -1;
     }
