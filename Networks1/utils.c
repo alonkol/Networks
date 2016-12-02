@@ -1,13 +1,11 @@
-#include <stdbool.h>
+#include <sys/types.h>
 #include <sys/socket.h>
-#include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 #include <errno.h>
 #include "utils.h"
+
 
 int sendall(int s, char *buf)
 {
@@ -80,13 +78,13 @@ int recvall(int s, char *buf)
     return n == -1 ? -1:0; /*-1 on failure, 0 on success */
 }
 
-void safe_shutdown(int newSock, char* buffer)
+void safe_shutdown(int socket, char* buffer)
 {
-    shutdown(newSock, SHUT_WR);
+    shutdown(socket, SHUT_WR);
     int res = 1;
     while(res > 0) { // if no more data to read, or error in reading - close socket
-    res = recv(sock, buffer, 4000);
+        res = recv(socket, buffer, SMALL_BUFFER_SIZE, 0);
     }
-    close(newSock);
+    close(socket);
 }
 
