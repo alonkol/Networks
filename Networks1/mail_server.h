@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 int init_listen(unsigned short portToListen);
 bool Authenticate(char* usersFile, int socket, char** user);
 char** ExtractRecipients(char* recipients_string, int* amount);
