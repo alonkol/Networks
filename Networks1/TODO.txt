@@ -1,14 +1,9 @@
 TODO:
-
-6. protocol pdf
-7. shutdown bonus
- 
-can't really check for server cause it can't be properly closed only by ctrl-c
-Is there suppose to be a way to close it?)
+ALL DONEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 
-
-
+(DONE) 6. protocol pdf
+(DONE) 7. shutdown bonus
 (DONE) 2. add password check to server
 (DONE) 2.5: change user input to 'User: <user>\n Password: <pass>\n', same with TO,SUBJECT,CONTENT
 9. (DONE) revert default port to 6423
@@ -20,4 +15,5 @@ sendall should send the correct number of bytes and make sure he gets that numbe
 recvall should first read first byte to know how much bytes needs to be read, and then read this amount 
 (and make sure it is the value returned from recvall)
 (DONE) 11.makefile
-8. memory leaks (NO NEED)
+8. memory leaks (NO NEED, can't really check for server cause it can't be properly closed only by ctrl-c
+Is there suppose to be a way to close it?))
