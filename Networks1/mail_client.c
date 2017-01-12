@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
     scanf("Password: %[^\n]s", password);
     getchar(); // ignore \n char
 
-    sprintf(buffer, "%s;%s", user, password);
+    sprintf(buffer, "AUTHENTICATE %s;%s", user, password);
     if (sendall(sock, (char *)&buffer) == -1)
     {
         close(sock);
@@ -98,11 +98,14 @@ int main(int argc, char* argv[])
     {
         scanf("%[^\n]s",buffer);
         getchar();
-        if (sendall(sock, (char *)&buffer) == -1)
-        {
-            break;
+        sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
+        //for any command except COMPOSE send the message immediately (no need for more args)
+        if (strcmp(command,'COMPOSE')!=0){
+            if (sendall(sock, (char *)&buffer) == -1)
+            {
+                break;
+            }
         }
-        sscanf(buffer, "%s",command);
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
@@ -160,13 +163,12 @@ int main(int argc, char* argv[])
             getchar(); // ignore \n char
             scanf("Text: %[^\n]s", content);
             getchar(); // ignore \n char
-            sprintf(buffer,"%s;%s;%s", to,subject,content);
+            sprintf(buffer,"COMPOSE %s;%s;%s", to,subject,content);
 
             if (sendall(sock, (char *)&buffer)==-1)
             {
                 break;
             }
-
             if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
@@ -179,6 +181,10 @@ int main(int argc, char* argv[])
             {
                 printf("Mail sent\r\n");
             }
+        }
+
+        else if (strcmp(command, "SHOW_ONLINE_USERS")){
+            break;
         }
         else if (strcmp(command,"QUIT")==0)
         {
