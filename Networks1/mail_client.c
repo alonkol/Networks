@@ -181,8 +181,7 @@ int main(int argc, char* argv[])
                 printf("Mail sent\r\n");
             }
         }
-
-        else if (strcmp(command, "SHOW_ONLINE_USERS")){
+        else if (strcmp(command, "SHOW_ONLINE_USERS")==0){
             if (recvall(sock, (char*)&buffer) == -1)
             {
                 break;
