@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
         {
             printf("accepting...\r\n");
             newSock = accept(mainSocket, NULL, &addrlen);
-            i = addNewSocket(newSock);
+            i = addNewSocket(newSock, sockets);
             printf("Accepted new client\r\n");
             strcpy(buffer, GREETING);
             // Send greeting
