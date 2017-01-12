@@ -20,3 +20,12 @@ typedef struct email
     EmailContent* content;
     bool active;
 } Email;
+
+typedef struct socket
+{
+    int fd;
+    char* user;
+    int[MAXMAILS+1] active_user_emails;
+    bool isAuth;
+    bool isActive;
+}Socket;
