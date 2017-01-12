@@ -109,12 +109,15 @@ int main(int argc, char* argv[])
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
+            printf("1");
             if (recvall(sock, (char*)&buffer)==-1)
             {
+                printf("2");
                 break;
             }
             while (strcmp(buffer,"END")!=0)
             {
+                printf("3");
                 printf("%s\n", buffer);
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
