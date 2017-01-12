@@ -107,6 +107,7 @@ int main(int argc, char* argv[])
                 // if user not authenticated, next command must be AUTHENTICATE
                 if (!currSocket.isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
                 {
+                    printf("NEXT COMMAND MUST BE AUTH\n");
                     strcpy(buffer, FAIL_MSG);
                     if (sendall(currSocket.fd, (char *)&buffer) == -1)
                     {
@@ -135,7 +136,6 @@ int main(int argc, char* argv[])
                 {
                     for (k = 1; k < currSocket.emailCount; k++)
                     {
-                        printf("Email Count: %d\n", currSocket.emailCount);
                         j = currSocket.active_user_emails[k];
                         if (emails[j].active)
                         {
@@ -234,8 +234,6 @@ int main(int argc, char* argv[])
                 }
             }
         }
-
-
     }
 }
 
