@@ -27,7 +27,7 @@ typedef struct socket
 }Socket;
 
 int init_listen(unsigned short portToListen);
-bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize);
+bool Authenticate(char* usersFile, Socket* socket, char* buffer, int bufferSize);
 char** ExtractRecipients(char* recipients_string, int* amount);
 int get_msg_id(char* commandParam, int* active_user_emails);
 int getSocketByUser(char* user, Socket* sockets);
@@ -35,6 +35,6 @@ int getSocketByfd(int fd, Socket* sockets);
 int addNewSocket(int fd, Socket* sockets);
 void init_sockets(Socket* sockets);
 int getMaxFd(Socket* sockets);
-void closeSocket(Socket socket);
+void closeSocket(Socket* socket);
 
 
