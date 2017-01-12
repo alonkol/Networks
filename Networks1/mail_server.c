@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
             // Send greeting
             if (sendall(sockets[i].fd, (char *)&buffer) == -1)
             {
-                closeSocket(sockets[i]);
+                closeSocket(&sockets[i]);
                 continue;
             }
         }
@@ -100,19 +100,19 @@ int main(int argc, char* argv[])
                 // accept commands
                 if (recvall(currSocket.fd, (char*)&buffer) == -1)
                 {
-                    closeSocket(currSocket);
+                    closeSocket(&currSocket);
                     continue;
                 }
                 sscanf(buffer, "%s %[^\n]s", nextCommand, commandParam);
 
                 // if user not authenticated, next command must be AUTHENTICATE
-                if (!currSocket.isAuth && (strcmp(nextCommand,"AUTHENTICATE")!=0))
+                if (!currSocket.isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
                 {
                     printf("NEXT COMMAND MUST BE AUTH\n");
                     strcpy(buffer, FAIL_MSG);
                     if (sendall(currSocket.fd, (char *)&buffer) == -1)
                     {
-                        closeSocket(currSocket);
+                        closeSocket(&currSocket);
                         continue;
                     }
                 }
@@ -120,12 +120,12 @@ int main(int argc, char* argv[])
                 if (strcmp(nextCommand,"AUTHENTICATE")==0)
                 {
                     printf("Authenticating...\r\n");
-                    if (!Authenticate(usersFile, currSocket, commandParam, BUFFER_SIZE))
+                    if (!Authenticate(usersFile, &currSocket, commandParam, BUFFER_SIZE))
                     {
                         strcpy(buffer, FAIL_MSG);
                         if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            closeSocket(currSocket);
+                            closeSocket(&currSocket);
                         }
                         continue;
                     }
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
                             sprintf(buffer, "%d. %s \"%s\"", k, emails[j].content->from, emails[j].content->title);
                             if (sendall(currSocket.fd, (char *)&buffer) == -1)
                             {
-                                closeSocket(currSocket);
+                                closeSocket(&currSocket);
                                 continue;
                             }
                         }
@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
                         strcpy(buffer, FAIL_MSG);
                         if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            closeSocket(currSocket);
+                            closeSocket(&currSocket);
                         }
                         continue;
                     }
@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
-                    closeSocket(currSocket);
+                    closeSocket(&currSocket);
                     continue;
                 }
                 else
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
                 // Send response
                 if (sendall(currSocket.fd, (char *)&buffer) == -1)
                 {
-                    closeSocket(currSocket);
+                    closeSocket(&currSocket);
                 }
             }
         }
@@ -279,7 +279,7 @@ int init_listen(unsigned short portToListen)
     return mainSocket;
 }
 
-bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
+bool Authenticate(char* usersFile, Socket* socket, char* buffer, int bufferSize)
 {
     char checkUsername[MAX_USERNAME];
     char checkPassword[MAX_PASSWORD];
@@ -297,21 +297,21 @@ bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
         if (strcmp(checkUsername, username) == 0 && strcmp(checkPassword, password) == 0)
         {
             // authenticated successfully
-            socket.isAuth = true;
-            strcpy(socket.user, username);
+            socket->isAuth = true;
+            strcpy(socket->user, username);
 
             // load user emails to memory
             for (i = 0; i <= MAXMAILS; i++)
             {
-                socket.active_user_emails[i] = 0;
+                socket->active_user_emails[i] = 0;
             }
-            socket.emailCount = 1;
+            socket->emailCount = 1;
             for (i = 1; i <= curr_email; i++)
             {
                 if (strcmp(emails[i].to, username) == 0)
                 {
-                    socket.active_user_emails[socket.emailCount] = i;
-                    socket.emailCount++;
+                    socket->active_user_emails[socket->emailCount] = i;
+                    socket->emailCount++;
                 }
             }
 
@@ -424,8 +424,8 @@ int getMaxFd(Socket* sockets){
     return max;
 }
 
-void closeSocket(Socket socket)
+void closeSocket(Socket* socket)
 {
-    socket.isActive = false;
-    close(socket.fd);
+    socket->isActive = false;
+    close(socket->fd);
 }
