@@ -21,8 +21,7 @@ int main(int argc, char* argv[])
     }
     char portToConnect[SMALL_BUFFER_SIZE];
     char hostname[SMALL_BUFFER_SIZE];
-    char buffer[SMALL_BUFFER_SIZE];
-    char bigBuffer[BIG_BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
     char user[MAX_USERNAME];
     char password[MAX_PASSWORD];
     char from[MAX_USERNAME*NUM_OF_CLIENTS];
@@ -128,18 +127,18 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
-            if (recvall(sock, (char*)&bigBuffer)==-1)
+            if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
             }
-            if (strcmp(bigBuffer,FAIL_MSG)==0)
+            if (strcmp(buffer,FAIL_MSG)==0)
             {
                 printf("oops, can't find the mail you requested...\r\n");
             }
             else
             {
                 // parsing buffer so it will be printed nicely
-                sscanf(bigBuffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
+                sscanf(buffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
                 printf("From: %s\r\nTo: %s\r\nSubject: %s\r\nText: %s\r\n",from,to,subject,content);
             }
         }
@@ -184,7 +183,21 @@ int main(int argc, char* argv[])
         }
 
         else if (strcmp(command, "SHOW_ONLINE_USERS")){
-            break;
+            if (recvall(sock, (char*)&buffer) == -1)
+            {
+                break;
+            }
+            printf("Online users: %s\n", buffer);
+        }
+        else if (strcmp(command, "MSG")){
+            if (strcmp(buffer,FAIL_MSG)==0)
+            {
+                printf("Error in sending message to user... \r\n");
+            }
+            else
+            {
+                printf("Message sent\r\n");
+            }
         }
         else if (strcmp(command,"QUIT")==0)
         {

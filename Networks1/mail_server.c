@@ -349,7 +349,7 @@ int getSocketByUser(char* user, Socket* sockets){
     return -1;
 }
 
-int getSocketByfd(int fd, Socket* sockets){
+int getSocketByFd(int fd, Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
         if(sockets[i]->fd == fd){
@@ -359,12 +359,13 @@ int getSocketByfd(int fd, Socket* sockets){
     return -1;
 }
 
-void addNewSock(int fd, Socket* sockets){
+int addNewSock(int fd, Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
          if (!sockets[i]->isActive){
             sockets[i]->isActive=true;
             sockets[i]->isAuth=false;
+            return i;
          }
     return -1;
 }
@@ -372,4 +373,15 @@ void init_sockets(Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
         sockets[i]->isActive=false;
+    }
+}
+
+int getMaxFd(Socket* sockets){
+    int i,max=-1;
+    for (i=0;i<NUM_OF_CLIENTS;i++){
+        if (sockets[i].isActive && max<sockets[i]->fd){
+            max=sockets[i]->fd;
+        }
+    }
+    return max;
 }

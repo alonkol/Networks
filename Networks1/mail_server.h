@@ -8,6 +8,7 @@ int getSocketByUser(char* user, Socket* sockets);
 int getSocketByfd(int fd, Socket* sockets);
 void addNewSock(int fd, Socket* sockets);
 void init_sockets(Socket* sockets);
+int getMaxFd(Socket* sockets);
 
 typedef struct email_content
 {
