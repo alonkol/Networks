@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
 
     while(true)
     {
+        printf("Enter command:\n");
         scanf("%[^\n]s",buffer);
         getchar();
         sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
@@ -124,6 +125,7 @@ int main(int argc, char* argv[])
             if (breakOuter==true){
                 break;
             }
+            printf("END OF SHOW INBOX\n");
         }
         else if (strcmp(command,"GET_MAIL")==0)
         {
