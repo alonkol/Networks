@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     char buffer[BUFFER_SIZE];
     char nextCommand[BUFFER_SIZE], commandParam[BUFFER_SIZE];
     int recipients_amount = 0;
-    int i, k, msg_id;
+    int i, k, j, msg_id;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
     char title[MAX_SUBJECT];
@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
                 {
                     for (k = 1; k < sockets[i].emailCount; k++)
                     {
-                        i = sockets[i].active_user_emails[k];
-                        if (emails[i].active)
+                        j = sockets[i].active_user_emails[k];
+                        if (emails[j].active)
                         {
-                            sprintf(buffer, "%d. %s \"%s\"", k, emails[i].content->from, emails[i].content->title);
+                            sprintf(buffer, "%d. %s \"%s\"", k, emails[j].content->from, emails[j].content->title);
                             if (sendall(sockets[i].fd, (char *)&buffer) == -1)
                             {
                                 sockets[i].isActive = false;
