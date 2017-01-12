@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
                "mail_client <optional:hostname <optional:port>>\r\n");
         return -1;
     }
-    char portToConnect[SMALL_BUFFER_SIZE];
-    char hostname[SMALL_BUFFER_SIZE];
+    char portToConnect[BUFFER_SIZE];
+    char hostname[BUFFER_SIZE];
     char buffer[BUFFER_SIZE];
     char user[MAX_USERNAME];
     char password[MAX_PASSWORD];
@@ -28,7 +28,7 @@ int main(int argc, char* argv[])
     char to[NUM_OF_CLIENTS];
     char subject[MAX_SUBJECT];
     char content[MAX_CONTENT];
-    char command[SMALL_BUFFER_SIZE];
+    char command[BUFFER_SIZE];
     bool breakOuter = false;
     int sock;
 
