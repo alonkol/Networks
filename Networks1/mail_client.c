@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
             }
             printf("Online users: %s\n", buffer);
         }
-        else if (strcmp(command, "MSG")){
+        else if (strcmp(command, "MSG")==0){
             if (strcmp(buffer,FAIL_MSG)==0)
             {
                 printf("Error in sending message to user... \r\n");
