@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
                 {
                     for (k = 1; k < currSocket.emailCount; k++)
                     {
+                        printf("Email Count: %d\n", currSocket.emailCount);
                         j = currSocket.active_user_emails[k];
                         if (emails[j].active)
                         {
