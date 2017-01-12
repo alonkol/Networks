@@ -391,7 +391,7 @@ int getSocketByFd(int fd, Socket* sockets){
     return -1;
 }
 
-int addNewSock(int fd, Socket* sockets){
+int addNewSocket(int fd, Socket* sockets){
     int i;
     for (i=0; i<NUM_OF_CLIENTS; i++)
     {

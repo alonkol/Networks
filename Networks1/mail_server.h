@@ -32,7 +32,7 @@ char** ExtractRecipients(char* recipients_string, int* amount);
 int get_msg_id(char* commandParam, int* active_user_emails);
 int getSocketByUser(char* user, Socket* sockets);
 int getSocketByfd(int fd, Socket* sockets);
-int addNewSock(int fd, Socket* sockets);
+int addNewSocket(int fd, Socket* sockets);
 void init_sockets(Socket* sockets);
 int getMaxFd(Socket* sockets);
 
