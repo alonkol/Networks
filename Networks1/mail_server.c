@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
                 }
                 continue;
             }
-            
+
             sscanf(commandParam, "%[^;];%[^;];%[^;]", recipients_string, title, text);
             recipients = ExtractRecipients(recipients_string, &recipients_amount);
 
