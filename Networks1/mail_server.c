@@ -63,6 +63,7 @@ int main(int argc, char* argv[])
 
     while(true)
     {
+        printf("Started new iteration\n");
         FD_ZERO(&read_fds);
         FD_SET(mainSocket, &read_fds);
         for (i = 0; i < NUM_OF_CLIENTS; i++)
