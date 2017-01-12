@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
             // Send greeting
             if (sendall(sockets[i].fd, (char *)&buffer) == -1)
             {
-                sockets[i].isActive = false;
+                closeSocket(sockets[i]);
                 continue;
             }
         }
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
                 // accept commands
                 if (recvall(currSocket.fd, (char*)&buffer) == -1)
                 {
-                    currSocket.isActive = false;
+                    closeSocket(currSocket);
                     continue;
                 }
                 sscanf(buffer, "%s %[^\n]s", nextCommand, commandParam);
@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
                     strcpy(buffer, FAIL_MSG);
                     if (sendall(currSocket.fd, (char *)&buffer) == -1)
                     {
-                        currSocket.isActive = false;
+                        closeSocket(currSocket);
                         continue;
                     }
                 }
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
                         strcpy(buffer, FAIL_MSG);
                         if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            currSocket.isActive = false;
+                            closeSocket(currSocket);
                         }
                         continue;
                     }
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
                             sprintf(buffer, "%d. %s \"%s\"", k, emails[j].content->from, emails[j].content->title);
                             if (sendall(currSocket.fd, (char *)&buffer) == -1)
                             {
-                                currSocket.isActive = false;
+                                closeSocket(currSocket);
                                 continue;
                             }
                         }
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
                         strcpy(buffer, FAIL_MSG);
                         if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            currSocket.isActive = false;
+                            closeSocket(currSocket);
                         }
                         continue;
                     }
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
-                    currSocket.isActive = false;
+                    closeSocket(currSocket);
                     continue;
                 }
                 else
@@ -229,7 +229,7 @@ int main(int argc, char* argv[])
                 // Send response
                 if (sendall(currSocket.fd, (char *)&buffer) == -1)
                 {
-                    currSocket.isActive = false;
+                    closeSocket(currSocket);
                 }
             }
         }
@@ -422,4 +422,10 @@ int getMaxFd(Socket* sockets){
         }
     }
     return max;
+}
+
+void closeSocket(Socket socket)
+{
+    socket.isActive = false;
+    close(socket.fd);
 }
