@@ -334,6 +334,17 @@ int get_msg_id(char* commandParam, int* active_user_emails)
     {
         return -1;
     }
-
     return msg_id;
+}
+
+int get_socket_by_user(char* user, user_info* sockets){
+    int i;
+    for (i=0;i<NUM_OF_CLIENTS;i++){
+        if(sockets[i]->isActive && sockets[i]->isAuth){
+            if (strcmp(user,socket[i]->user)==0){
+                return sockets[i]->fd;
+            }
+        }
+    }
+    return -1;
 }
