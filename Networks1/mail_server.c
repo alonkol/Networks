@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
                     sockets[i].isActive = false;
                     continue;
                 }
-                sscanf(buffer, "%s %s", nextCommand, commandParam);
+                sscanf(buffer, "%s %[^\n]s", nextCommand, commandParam);
 
                 // if user not authenticated, next command must be AUTHENTICATE
                 if (!sockets[i].isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
