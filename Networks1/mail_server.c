@@ -53,6 +53,7 @@ int main(int argc, char* argv[])
     char** recipients;
     EmailContent* emailContent;
     Sockets sockets[NUM_OF_CLIENTS];
+    init_sockets(sockets);
 
     fd_set read_fds;
     int fdmax = 0;
