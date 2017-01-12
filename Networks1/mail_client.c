@@ -99,7 +99,6 @@ int main(int argc, char* argv[])
         scanf("%[^\n]s",buffer);
         getchar();
         sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
-        printf("%s\n", command);
         //for any command except COMPOSE send the message immediately (no need for more args)
         if (strcmp(command,"COMPOSE")!=0){
             if (sendall(sock, (char *)&buffer) == -1)
@@ -110,15 +109,12 @@ int main(int argc, char* argv[])
 
         if (strcmp(command,"SHOW_INBOX")==0)
         {
-            printf("1\n");
             if (recvall(sock, (char*)&buffer)==-1)
             {
-                printf("2\n");
                 break;
             }
             while (strcmp(buffer,"END")!=0)
             {
-                printf("3\n");
                 printf("%s\n", buffer);
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
