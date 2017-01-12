@@ -28,7 +28,7 @@ typedef struct email
 typedef struct socket
 {
     int fd;
-    char* user;
+    char user[MAX_USERNAME];
     int[MAXMAILS+1] active_user_emails;
     bool isAuth;
     bool isActive;

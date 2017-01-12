@@ -10,8 +10,7 @@
 #define MAX_CONTENT 2000
 #define MAXMAILS 32000
 #define TO_TOTAL 20
-#define SMALL_BUFFER_SIZE 100
-#define BIG_BUFFER_SIZE 5000
+#define BUFFER_SIZE 5000
 #define GREETING "Winter is coming"
 
 int sendall(int s, char *buf);
