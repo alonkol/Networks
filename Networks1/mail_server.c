@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
                 sscanf(buffer, "%s %[^\n]s", nextCommand, commandParam);
 
                 // if user not authenticated, next command must be AUTHENTICATE
-                if (!currSocket.isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
+                if (!currSocket.isAuth && (strcmp(nextCommand,"AUTHENTICATE")!=0))
                 {
                     printf("NEXT COMMAND MUST BE AUTH\n");
                     strcpy(buffer, FAIL_MSG);
