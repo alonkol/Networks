@@ -59,6 +59,7 @@ int main(int argc, char* argv[])
 
     fd_set read_fds;
     int fdmax = 0;
+    Socket currSocket;
 
     while(true)
     {
@@ -92,23 +93,24 @@ int main(int argc, char* argv[])
 
         for (i = 0; i < NUM_OF_CLIENTS; i++)
         {
-            if (FD_ISSET(sockets[i].fd , &read_fds))
+            currSocket = sockets[i];
+            if (FD_ISSET(currSocket.fd , &read_fds))
             {
                 // accept commands
-                if (recvall(sockets[i].fd, (char*)&buffer) == -1)
+                if (recvall(currSocket.fd, (char*)&buffer) == -1)
                 {
-                    sockets[i].isActive = false;
+                    currSocket.isActive = false;
                     continue;
                 }
                 sscanf(buffer, "%s %[^\n]s", nextCommand, commandParam);
 
                 // if user not authenticated, next command must be AUTHENTICATE
-                if (!sockets[i].isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
+                if (!currSocket.isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
                 {
                     strcpy(buffer, FAIL_MSG);
-                    if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+                    if (sendall(currSocket.fd, (char *)&buffer) == -1)
                     {
-                        sockets[i].isActive = false;
+                        currSocket.isActive = false;
                         continue;
                     }
                 }
@@ -116,12 +118,12 @@ int main(int argc, char* argv[])
                 if (strcmp(nextCommand,"AUTHENTICATE")==0)
                 {
                     printf("Authenticating...\r\n");
-                    if (!Authenticate(usersFile, sockets[i], commandParam, BUFFER_SIZE))
+                    if (!Authenticate(usersFile, currSocket, commandParam, BUFFER_SIZE))
                     {
                         strcpy(buffer, FAIL_MSG);
-                        if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+                        if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            sockets[i].isActive = false;
+                            currSocket.isActive = false;
                         }
                         continue;
                     }
@@ -131,15 +133,15 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"SHOW_INBOX")==0)
                 {
-                    for (k = 1; k < sockets[i].emailCount; k++)
+                    for (k = 1; k < currSocket.emailCount; k++)
                     {
-                        j = sockets[i].active_user_emails[k];
+                        j = currSocket.active_user_emails[k];
                         if (emails[j].active)
                         {
                             sprintf(buffer, "%d. %s \"%s\"", k, emails[j].content->from, emails[j].content->title);
-                            if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+                            if (sendall(currSocket.fd, (char *)&buffer) == -1)
                             {
-                                sockets[i].isActive = false;
+                                currSocket.isActive = false;
                                 continue;
                             }
                         }
@@ -149,9 +151,9 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {
-                    msg_id = get_msg_id(commandParam, sockets[i].active_user_emails);
+                    msg_id = get_msg_id(commandParam, currSocket.active_user_emails);
 
-                    if (msg_id != -1 && emails[msg_id].active && strcmp(emails[msg_id].to, sockets[i].user) == 0)
+                    if (msg_id != -1 && emails[msg_id].active && strcmp(emails[msg_id].to, currSocket.user) == 0)
                     {
                         sprintf(buffer, "%s;%s;%s;%s", emails[msg_id].content->from, emails[msg_id].content->recipients_string,
                                 emails[msg_id].content->title, emails[msg_id].content->text);
@@ -163,9 +165,9 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"DELETE_MAIL")==0)
                 {
-                    msg_id = get_msg_id(commandParam, sockets[i].active_user_emails);
+                    msg_id = get_msg_id(commandParam, currSocket.active_user_emails);
 
-                    if (msg_id != -1 && strcmp(sockets[i].user, emails[msg_id].to) == 0)
+                    if (msg_id != -1 && strcmp(currSocket.user, emails[msg_id].to) == 0)
                     {
                         emails[msg_id].active = false;
                         strcpy(buffer, SUCCESS_MSG);
@@ -179,9 +181,9 @@ int main(int argc, char* argv[])
                 {
                     if (curr_email >= MAXMAILS){
                         strcpy(buffer, FAIL_MSG);
-                        if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+                        if (sendall(currSocket.fd, (char *)&buffer) == -1)
                         {
-                            sockets[i].isActive = false;
+                            currSocket.isActive = false;
                         }
                         continue;
                     }
@@ -191,24 +193,24 @@ int main(int argc, char* argv[])
 
                     emailContent = (EmailContent*)malloc(sizeof(EmailContent));
 
-                    strcpy(emailContent->from, sockets[i].user);
+                    strcpy(emailContent->from, currSocket.user);
                     strcpy(emailContent->title, title);
                     strcpy(emailContent->text, text);
                     strcpy(emailContent->recipients_string, recipients_string);
                     emailContent->recipients = recipients;
 
                     // foreach recipient create new email instance
-                    for (i = 0; i < recipients_amount; i++)
+                    for (j = 0; j < recipients_amount; j++)
                     {
                         curr_email++;
-                        strcpy(emails[curr_email].to, recipients[i]);
+                        strcpy(emails[curr_email].to, recipients[j]);
                         emails[curr_email].content = emailContent;
                         emails[curr_email].active = true;
 
-                        if (strcmp(sockets[i].user, recipients[i]) == 0)
+                        if (strcmp(currSocket.user, recipients[j]) == 0)
                         {
-                            sockets[i].active_user_emails[sockets[i].emailCount] = curr_email;
-                            sockets[i].emailCount++;
+                            currSocket.active_user_emails[currSocket.emailCount] = curr_email;
+                            currSocket.emailCount++;
                         }
                     }
 
@@ -216,7 +218,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
-                    sockets[i].isActive = false;
+                    currSocket.isActive = false;
                     continue;
                 }
                 else
@@ -225,9 +227,9 @@ int main(int argc, char* argv[])
                 }
 
                 // Send response
-                if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+                if (sendall(currSocket.fd, (char *)&buffer) == -1)
                 {
-                    sockets[i].isActive = false;
+                    currSocket.isActive = false;
                 }
             }
         }
