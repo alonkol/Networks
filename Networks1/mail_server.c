@@ -47,7 +47,6 @@ int main(int argc, char* argv[])
     char nextCommand[BUFFER_SIZE], commandParam[BUFFER_SIZE];
     int recipients_amount = 0;
     int i, k, msg_id;
-    bool breakOuter = false;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
     char title[MAX_SUBJECT];
@@ -80,7 +79,7 @@ int main(int argc, char* argv[])
         {
             printf("accepting...\r\n");
             newSock = accept(mainSocket, NULL, &addrlen);
-            i = AddNewSocket(newSock);
+            i = addNewSocket(newSock);
             printf("Accepted new client\r\n");
             strcpy(buffer, GREETING);
             // Send greeting
@@ -132,7 +131,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"SHOW_INBOX")==0)
                 {
-                    for (k = 1; k < j; k++)
+                    for (k = 1; k < sockets[i].emailCount; k++)
                     {
                         i = sockets[i].active_user_emails[k];
                         if (emails[i].active)
@@ -166,7 +165,7 @@ int main(int argc, char* argv[])
                 {
                     msg_id = get_msg_id(commandParam, sockets[i].active_user_emails);
 
-                    if (msg_id != -1 && strcmp(user, emails[msg_id].to) == 0)
+                    if (msg_id != -1 && strcmp(sockets[i].user, emails[msg_id].to) == 0)
                     {
                         emails[msg_id].active = false;
                         strcpy(buffer, SUCCESS_MSG);
@@ -208,8 +207,8 @@ int main(int argc, char* argv[])
 
                         if (strcmp(sockets[i].user, recipients[i]) == 0)
                         {
-                            sockets[i].active_user_emails[j] = curr_email;
-                            j++;
+                            sockets[i].active_user_emails[sockets[i].emailCount] = curr_email;
+                            sockets[i].emailCount++;
                         }
                     }
 
@@ -284,7 +283,7 @@ bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
     char checkPassword[MAX_PASSWORD];
     char username[MAX_USERNAME];
     char password[MAX_PASSWORD];
-    int j = 1, i;
+    int i;
 
     sscanf(buffer, "%[^;];%[^;]", username, password);
     // read form file
@@ -300,13 +299,17 @@ bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
             strcpy(socket.user, username);
 
             // load user emails to memory
-            socket.active_user_emails = {0};
+            for (i = 0; i <= MAXMAILS; i++)
+            {
+                socket.active_user_emails[i] = 0;
+            }
+            socket.emailCount = 1;
             for (i = 1; i <= curr_email; i++)
             {
                 if (strcmp(emails[i].to, username) == 0)
                 {
-                    socket.active_user_emails[j] = i;
-                    j++;
+                    socket.active_user_emails[socket.emailCount] = i;
+                    socket.emailCount++;
                 }
             }
 
