@@ -13,6 +13,10 @@
 #include "utils.h"
 #include "mail_server.h"
 
+// global variables
+int curr_email = 1;
+Email emails[MAXMAILS+1];
+
 int main(int argc, char* argv[])
 {
     if (argc !=2 && argc != 3)
@@ -41,8 +45,7 @@ int main(int argc, char* argv[])
     int newSock;
     char buffer[BUFFER_SIZE];
     char nextCommand[BUFFER_SIZE], commandParam[BUFFER_SIZE];
-    Email emails[MAXMAILS+1];
-    int curr_email = 1, recipients_amount = 0;
+    int recipients_amount = 0;
     int i, k, msg_id;
     bool breakOuter = false;
 
@@ -52,7 +55,7 @@ int main(int argc, char* argv[])
 
     char** recipients;
     EmailContent* emailContent;
-    Sockets sockets[NUM_OF_CLIENTS];
+    Socket sockets[NUM_OF_CLIENTS];
     init_sockets(sockets);
 
     fd_set read_fds;
@@ -73,7 +76,7 @@ int main(int argc, char* argv[])
         fdmax = fdmax > mainSocket ? fdmax : mainSocket;
         select(fdmax+1, &read_fds, NULL, NULL, NULL);
 
-        if (FD_ISSET(listening_sock , &read_fds))
+        if (FD_ISSET(mainSocket, &read_fds))
         {
             printf("accepting...\r\n");
             newSock = accept(mainSocket, NULL, &addrlen);
@@ -281,6 +284,7 @@ bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
     char checkPassword[MAX_PASSWORD];
     char username[MAX_USERNAME];
     char password[MAX_PASSWORD];
+    int j = 1, i;
 
     sscanf(buffer, "%[^;];%[^;]", username, password);
     // read form file
@@ -296,7 +300,6 @@ bool Authenticate(char* usersFile, Socket socket, char* buffer, int bufferSize)
             strcpy(socket.user, username);
 
             // load user emails to memory
-            int j = 1;
             socket.active_user_emails = {0};
             for (i = 1; i <= curr_email; i++)
             {
