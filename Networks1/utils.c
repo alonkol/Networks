@@ -84,7 +84,7 @@ void safe_shutdown(int socket, char* buffer)
     shutdown(socket, SHUT_WR);
     int res = 1;
     while(res > 0) { // if no more data to read, or error in reading - close socket
-        res = recv(socket, buffer, SMALL_BUFFER_SIZE, 0);
+        res = recv(socket, buffer, BUFFER_SIZE, 0);
     }
     close(socket);
 }
