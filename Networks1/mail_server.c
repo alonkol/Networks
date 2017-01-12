@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         FD_SET(mainSocket, &read_fds);
         for (i = 0; i < NUM_OF_CLIENTS; i++)
         {
-            if (currSocket.isActive)
+            if (sockets[i].isActive)
             {
                 FD_SET(sockets[i].fd, &read_fds);
             }
