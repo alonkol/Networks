@@ -337,7 +337,7 @@ int get_msg_id(char* commandParam, int* active_user_emails)
     return msg_id;
 }
 
-int get_socket_by_user(char* user, user_info* sockets){
+int getSocketByUser(char* user, Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
         if(sockets[i]->isActive && sockets[i]->isAuth){
@@ -347,4 +347,29 @@ int get_socket_by_user(char* user, user_info* sockets){
         }
     }
     return -1;
+}
+
+int getSocketByfd(int fd, Socket* sockets){
+    int i;
+    for (i=0;i<NUM_OF_CLIENTS;i++){
+        if(sockets[i]->fd == fd){
+            return i;
+        }
+    }
+    return -1;
+}
+
+void addNewSock(int fd, Socket* sockets){
+    int i;
+    for (i=0;i<NUM_OF_CLIENTS;i++){
+         if (!sockets[i]->isActive){
+            sockets[i]->isActive=true;
+            sockets[i]->isAuth=false;
+         }
+    return -1;
+}
+void init_sockets(Socket* sockets){
+    int i;
+    for (i=0;i<NUM_OF_CLIENTS;i++){
+        sockets[i]->isActive=false;
 }
