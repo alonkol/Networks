@@ -399,6 +399,7 @@ int addNewSocket(int fd, Socket* sockets){
         {
             sockets[i].isActive = true;
             sockets[i].isAuth = false;
+            sockets[i].fd=fd;
             return i;
         }
     }
