@@ -207,6 +207,7 @@ int main(int argc, char* argv[])
             printf("Command not supported.\r\n");
         }
     }
+    printf("I'm out");
     // closing connection
     safe_shutdown(sock, buffer);
 }
