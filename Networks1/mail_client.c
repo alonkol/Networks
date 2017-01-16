@@ -111,8 +111,8 @@ int main(int argc, char* argv[])
             {
                 break;
             }
-            sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
-            printf("New message from %s: %s\n", user, msg);
+            sscanf(buffer,"MSG %[^;];%[^\n]", from, content);
+            printf("New message from %s: %s\n", from, content);
         }
         // if user inserted something
         if (FD_ISSET(STDIN, &read_fds))
