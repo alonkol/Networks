@@ -144,8 +144,22 @@ int main(int argc, char* argv[])
                             }
                         }
                     }
-
                     sprintf(buffer, "END");
+                }
+                else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
+                {
+                    buffer[0]=0;
+                    for (k = 1; k < NUM_OF_CLIENTS; k++)
+                    {
+                        if (sockets[k].isAuth){
+                            sprintf(buffer, "%s,%s", buffer, sockets[k].user);
+                        }
+                    }
+                    if (sendall(sockets[i].fd, (char *)&(buffer+1)) == -1)
+                    {
+                        closeSocket(&sockets[i]);
+                        continue;
+                    }
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {
@@ -378,6 +392,13 @@ int getSocketIndexByUser(char* user, Socket* sockets){
         }
     }
     return -1;
+}
+bool checkOnline(char* user, Socket* sockets){
+    int index = getSocketIndexByUser(user, sockets);
+    if (index == -1){
+        return false
+    }
+    else return sockets[i].isAuth;
 }
 
 int getSocketIndexByFd(int fd, Socket* sockets){
