@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
             {
                 break;
             }
-            printf("%s\n",buffer);
+            handleChatMessage(buffer, sock);
         }
         // if user inserted something
         if (FD_ISSET(STDIN, &read_fds))
@@ -132,6 +132,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 while (strcmp(buffer,"END")!=0)
                 {
                     printf("%s\n", buffer);
@@ -140,6 +141,7 @@ int main(int argc, char* argv[])
                         breakOuter=true;
                         break;
                     }
+                    handleChatMessage(buffer, sock);
                 }
                 if (breakOuter==true)
                 {
@@ -153,6 +155,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 if (strcmp(buffer,FAIL_MSG)==0)
                 {
                     printf("oops, can't find the mail you requested...\r\n");
@@ -170,6 +173,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 if (strcmp(buffer,FAIL_MSG) == 0)
                 {
                     printf("oops, can't delete the mail you requested...\r\n");
@@ -194,6 +198,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 if (strcmp(buffer,FAIL_MSG)==0)
                 {
                     printf("Error in compose... \r\n");
@@ -209,6 +214,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 printf("Online users: %s\n", buffer);
             }
             else if (strcmp(command, "MSG")==0)
@@ -224,6 +230,7 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
+                handleChatMessage(buffer, sock);
                 if (strcmp(buffer,FAIL_MSG)==0)
                 {
                     printf("Error in sending message to user... \r\n");
