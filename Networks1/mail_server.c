@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
                     sscanf(commandParam, "%[^;];%[^;]", recipient, text);
 
                     socketIndex = getSocketIndexByUser(recipient, sockets);
-                    if (socketIndex != -1)
+                    if (socketIndex == -1)
                     {
                         strcpy(title,NEW_MSG_TITLE);
                         composeEmail(buffer, sockets, i, recipient, title, text);
