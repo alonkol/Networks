@@ -219,8 +219,8 @@ int main(int argc, char* argv[])
                         {
                             closeSocket(&sockets[socketIndex]);
                         }
+                        strcpy(buffer, SUCCESS_MSG);
                     }
-                    strcpy(buffer, SUCCESS_MSG);
                 }
                 else
                 {
