@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
                     {
                         if (sockets[k].isActive && sockets[k].isAuth){
                             sprintf(buffer, "%s,%s", buffer, sockets[k].user);
-                            print("Added\n");
+                            printf("Added\n");
                         }
                     }
                     printf("%s\n", (buffer+1));
