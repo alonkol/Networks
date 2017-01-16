@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     printf("%s\n", buffer);
-                    if (sendall(sockets[i].fd, (char *)(&buffer)) == -1)
+                    if (sendall(sockets[i].fd, (char *)(&buffer)+1) == -1)
                     {
                         closeSocket(&sockets[i]);
                         continue;
