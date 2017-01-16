@@ -111,7 +111,6 @@ int main(int argc, char* argv[])
             {
                 break;
             }
-            printf("%s\n",buffer);
             sscanf(buffer,"MSG %[^;];%[^\n]", from, content);
             printf("New message from %s: %s\n", from, content);
         }

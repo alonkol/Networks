@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
     int i, k, j, msg_id, socketIndex;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
+    char users_string[(MAX_USERNAME+1)*NUM_OF_CLIENTS];
     char title[MAX_SUBJECT];
     char text[MAX_CONTENT];
     char recipient[MAX_USERNAME];
@@ -147,14 +148,14 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
                 {
-                    buffer[0] = 0;
+                    users_string[0] = 0;
                     for (k = 0; k < NUM_OF_CLIENTS; k++)
                     {
                         if (sockets[k].isActive && sockets[k].isAuth){
-                            sprintf(buffer, "%s,%s", buffer, sockets[k].user);
+                            sprintf(users_string, "%s,%s", users_string, sockets[k].user);
                         }
                     }
-                    sprintf(buffer, "%s", buffer+1);
+                    sprintf(buffer, "%s", users_string+1);
                     printf("%s\n",buffer);
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
