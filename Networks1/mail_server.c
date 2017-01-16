@@ -147,7 +147,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
                 {
-                    buffer[0]=0;
+                    strcpy(buffer,"aaa");
                     for (k = 0; k < NUM_OF_CLIENTS; k++)
                     {
                         if (sockets[k].isActive && sockets[k].isAuth){
