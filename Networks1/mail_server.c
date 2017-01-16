@@ -154,12 +154,7 @@ int main(int argc, char* argv[])
                             sprintf(buffer, "%s,%s", buffer, sockets[k].user);
                         }
                     }
-                    printf("%s\n", buffer);
-                    if (sendall(sockets[i].fd, (char *)(&buffer)+1) == -1)
-                    {
-                        closeSocket(&sockets[i]);
-                        continue;
-                    }
+                    sprintf(buffer, "%s", buffer+1);
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {

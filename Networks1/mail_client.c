@@ -323,6 +323,7 @@ void handleChatMessage(char* buffer, int sock)
             close(sock);
             exit(-1);
         }
+        handleChatMessage(buffer, sock);
     }
 
 
