@@ -149,9 +149,9 @@ int main(int argc, char* argv[])
                 else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
                 {
                     buffer[0]=0;
-                    for (k = 1; k < NUM_OF_CLIENTS; k++)
+                    for (k = 0; k < NUM_OF_CLIENTS; k++)
                     {
-                        if (sockets[k].isAuth){
+                        if (sockets[k].isActive && sockets[k].isAuth){
                             sprintf(buffer, "%s,%s", buffer, sockets[k].user);
                         }
                     }
@@ -231,6 +231,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
+                    sockets[i].isActive=false;
                     closeSocket(&sockets[i]);
                     continue;
                 }
