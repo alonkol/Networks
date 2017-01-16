@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-                        sprintf(buffer, "%s;%s", sockets[i].user, text);
+                        sprintf(buffer, "MSG;%s;%s", sockets[i].user, text);
                         if (sendall(sockets[socketIndex].fd, (char *)&buffer) == -1)
                         {
                             closeSocket(&sockets[socketIndex]);
