@@ -147,15 +147,13 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
                 {
-                    strcpy(buffer,"aaa");
+                    strcpy(buffer,"");
                     for (k = 0; k < NUM_OF_CLIENTS; k++)
                     {
                         if (sockets[k].isActive && sockets[k].isAuth){
                             sprintf(buffer, "%s,%s", buffer, sockets[k].user);
-                            printf("Added\n");
                         }
                     }
-                    printf("%s\n", (buffer+1));
                     if (sendall(sockets[i].fd, (char *)(&buffer+1)) == -1)
                     {
                         closeSocket(&sockets[i]);
