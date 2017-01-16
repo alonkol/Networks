@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
                 else if (strcmp(nextCommand,"MSG")==0)
                 {
                     sscanf(commandParam, "%[^;];%[^\n]", recipient, text);
-
+                    printf("Server received: recipient: %s, text: %s\r\n", recipient, text);
                     socketIndex = getSocketIndexByUser(recipient, sockets);
                     if (socketIndex == -1)
                     {
