@@ -62,7 +62,6 @@ int main(int argc, char* argv[])
 
     while(true)
     {
-        printf("Started new iteration\n");
         FD_ZERO(&read_fds);
         FD_SET(mainSocket, &read_fds);
         for (i = 0; i < NUM_OF_CLIENTS; i++)
@@ -106,7 +105,6 @@ int main(int argc, char* argv[])
                 // if user not authenticated, next command must be AUTHENTICATE
                 if (!sockets[i].isAuth && strcmp(nextCommand,"AUTHENTICATE")!=0)
                 {
-                    printf("NEXT COMMAND MUST BE AUTH\n");
                     strcpy(buffer, FAIL_MSG);
                     if (sendall(sockets[i].fd, (char *)&buffer) == -1)
                     {
