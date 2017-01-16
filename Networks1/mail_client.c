@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
         }
         else if (strcmp(command, "MSG")==0){
             sscanf(buffer, "MSG %s: %[^\n]s", user, content);
-            getchar(); // ignore \n char
+            printf("%s", buffer);
             sprintf(buffer,"%s;%s", user, content);
             if (sendall(sock, (char *)&buffer)==-1)
             {
