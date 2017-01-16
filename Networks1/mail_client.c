@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include "mail_client.h"
+#define STDIN 0
 
 int main(int argc, char* argv[])
 {
@@ -93,131 +94,153 @@ int main(int argc, char* argv[])
 
     printf("Connected to server\r\n");
 
+    fd_set read_fds;
+
     while(true)
     {
-        printf("Enter command:\n");
-        scanf("%[^\n]s",buffer);
-        getchar();
-        sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
-        //for any command except COMPOSE send the message immediately (no need for more args)
-        if (strcmp(command,"COMPOSE")!=0 && strcmp(command,"MSG")!=0){
-            if (sendall(sock, (char *)&buffer) == -1)
-            {
-                break;
-            }
-        }
-
-        if (strcmp(command,"SHOW_INBOX")==0)
+        FD_ZERO(&read_fds);
+        FD_SET(sock, &read_fds);
+        FD_SET(STDIN, &read_fds);
+        select(sock+1, &read_fds, NULL, NULL, NULL);
+        // if got message from server
+        if (FD_ISSET(sock, &read_fds))
         {
             if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
             }
-            while (strcmp(buffer,"END")!=0)
+            printf("%s\n",buffer);
+        }
+        // if user inserted something
+        if (FD_ISSET(STDIN, &read_fds))
+        {
+            scanf("%[^\n]s",buffer);
+            getchar();
+            sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
+            //for any command except COMPOSE and MSG send the message immediately (no need for more args)
+            if (strcmp(command,"COMPOSE")!=0 && strcmp(command,"MSG")!=0)
             {
-                printf("%s\n", buffer);
-                if (recvall(sock, (char*)&buffer) == -1)
+                if (sendall(sock, (char *)&buffer) == -1)
                 {
-                    breakOuter=true;
                     break;
                 }
             }
-            if (breakOuter==true){
-                break;
-            }
-            printf("END OF SHOW INBOX\n");
-        }
-        else if (strcmp(command,"GET_MAIL")==0)
-        {
-            if (recvall(sock, (char*)&buffer)==-1)
-            {
-                break;
-            }
-            if (strcmp(buffer,FAIL_MSG)==0)
-            {
-                printf("oops, can't find the mail you requested...\r\n");
-            }
-            else
-            {
-                // parsing buffer so it will be printed nicely
-                sscanf(buffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
-                printf("From: %s\r\nTo: %s\r\nSubject: %s\r\nText: %s\r\n",from,to,subject,content);
-            }
-        }
-        else if (strcmp(command,"DELETE_MAIL") == 0)
-        {
-            if (recvall(sock, (char*)&buffer) == -1)
-            {
-                break;
-            }
-            if (strcmp(buffer,FAIL_MSG) == 0)
-            {
-                printf("oops, can't delete the mail you requested...\r\n");
-            }
-        }
-        else if (strcmp(command,"COMPOSE") == 0)
-        {
-            // preparing buffer to send
-            scanf("To: %[^\n]s", to);
-            getchar(); // ignore \n char
-            scanf("Subject: %[^\n]s", subject);
-            getchar(); // ignore \n char
-            scanf("Text: %[^\n]s", content);
-            getchar(); // ignore \n char
-            sprintf(buffer,"COMPOSE %s;%s;%s", to,subject,content);
 
-            if (sendall(sock, (char *)&buffer)==-1)
+            if (strcmp(command,"SHOW_INBOX")==0)
+            {
+                if (recvall(sock, (char*)&buffer)==-1)
+                {
+                    break;
+                }
+                while (strcmp(buffer,"END")!=0)
+                {
+                    printf("%s\n", buffer);
+                    if (recvall(sock, (char*)&buffer) == -1)
+                    {
+                        breakOuter=true;
+                        break;
+                    }
+                }
+                if (breakOuter==true)
+                {
+                    break;
+                }
+                printf("END OF SHOW INBOX\n");
+            }
+            else if (strcmp(command,"GET_MAIL")==0)
+            {
+                if (recvall(sock, (char*)&buffer)==-1)
+                {
+                    break;
+                }
+                if (strcmp(buffer,FAIL_MSG)==0)
+                {
+                    printf("oops, can't find the mail you requested...\r\n");
+                }
+                else
+                {
+                    // parsing buffer so it will be printed nicely
+                    sscanf(buffer,"%[^;];%[^;];%[^;];%[^;]",from,to,subject,content);
+                    printf("From: %s\r\nTo: %s\r\nSubject: %s\r\nText: %s\r\n",from,to,subject,content);
+                }
+            }
+            else if (strcmp(command,"DELETE_MAIL") == 0)
+            {
+                if (recvall(sock, (char*)&buffer) == -1)
+                {
+                    break;
+                }
+                if (strcmp(buffer,FAIL_MSG) == 0)
+                {
+                    printf("oops, can't delete the mail you requested...\r\n");
+                }
+            }
+            else if (strcmp(command,"COMPOSE") == 0)
+            {
+                // preparing buffer to send
+                scanf("To: %[^\n]s", to);
+                getchar(); // ignore \n char
+                scanf("Subject: %[^\n]s", subject);
+                getchar(); // ignore \n char
+                scanf("Text: %[^\n]s", content);
+                getchar(); // ignore \n char
+                sprintf(buffer,"COMPOSE %s;%s;%s", to,subject,content);
+
+                if (sendall(sock, (char *)&buffer)==-1)
+                {
+                    break;
+                }
+                if (recvall(sock, (char*)&buffer)==-1)
+                {
+                    break;
+                }
+                if (strcmp(buffer,FAIL_MSG)==0)
+                {
+                    printf("Error in compose... \r\n");
+                }
+                else
+                {
+                    printf("Mail sent\r\n");
+                }
+            }
+            else if (strcmp(command, "SHOW_ONLINE_USERS")==0)
+            {
+                if (recvall(sock, (char*)&buffer) == -1)
+                {
+                    break;
+                }
+                printf("Online users: %s\n", buffer);
+            }
+            else if (strcmp(command, "MSG")==0)
+            {
+                sscanf(buffer, "MSG %[^:]: %[^\n]", user, content);
+                sprintf(buffer,"MSG %s;%s", user, content);
+                printf("%s", buffer);
+                if (sendall(sock, (char *)&buffer)==-1)
+                {
+                    break;
+                }
+                if (recvall(sock, (char*)&buffer) == -1)
+                {
+                    break;
+                }
+                if (strcmp(buffer,FAIL_MSG)==0)
+                {
+                    printf("Error in sending message to user... \r\n");
+                }
+                else
+                {
+                    printf("Message sent\r\n");
+                }
+            }
+            else if (strcmp(command,"QUIT")==0)
             {
                 break;
-            }
-            if (recvall(sock, (char*)&buffer)==-1)
-            {
-                break;
-            }
-            if (strcmp(buffer,FAIL_MSG)==0)
-            {
-                printf("Error in compose... \r\n");
             }
             else
             {
-                printf("Mail sent\r\n");
+                printf("Command not supported.\r\n");
             }
-        }
-        else if (strcmp(command, "SHOW_ONLINE_USERS")==0){
-            if (recvall(sock, (char*)&buffer) == -1)
-            {
-                break;
-            }
-            printf("Online users: %s\n", buffer);
-        }
-        else if (strcmp(command, "MSG")==0){
-            sscanf(buffer, "MSG %[^:]: %[^\n]", user, content);
-            sprintf(buffer,"MSG %s;%s", user, content);
-            printf("%s", buffer);
-            if (sendall(sock, (char *)&buffer)==-1)
-            {
-                break;
-            }
-            if (recvall(sock, (char*)&buffer) == -1)
-            {
-                break;
-            }
-            if (strcmp(buffer,FAIL_MSG)==0)
-            {
-                printf("Error in sending message to user... \r\n");
-            }
-            else
-            {
-                printf("Message sent\r\n");
-            }
-        }
-        else if (strcmp(command,"QUIT")==0)
-        {
-            break;
-        }
-        else
-        {
-            printf("Command not supported.\r\n");
         }
     }
     printf("I'm out");
