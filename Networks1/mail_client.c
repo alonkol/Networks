@@ -308,10 +308,12 @@ void handleChatMessage(char* buffer, int sock)
     char msg[BUFFER_SIZE];
     char command[BUFFER_SIZE];
     char user[BUFFER_SIZE];
-    sscanf(buffer,"%[^;];%[^;];%[^']",command, user, msg);
+
+    sscanf(buffer, command);
 
     if (strcmp(command, "MSG") == 0)
     {
+        sscanf(buffer,"%MSG %[^;];%[^\n]", user, msg);
         printf("New message from %s: %s", user, msg);
     }
 
