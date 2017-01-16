@@ -36,5 +36,6 @@ int addNewSocket(int fd, Socket* sockets);
 void init_sockets(Socket* sockets);
 int getMaxFd(Socket* sockets);
 void closeSocket(Socket* socket);
+int composeEmail(char* buffer, Socket* sockets, int i, char* recipients_string, char* title, char* text);
 
 

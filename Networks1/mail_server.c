@@ -17,6 +17,7 @@
 int curr_email = 1;
 Email emails[MAXMAILS+1];
 
+
 int main(int argc, char* argv[])
 {
     if (argc !=2 && argc != 3)
@@ -45,15 +46,13 @@ int main(int argc, char* argv[])
     int newSock;
     char buffer[BUFFER_SIZE];
     char nextCommand[BUFFER_SIZE], commandParam[BUFFER_SIZE];
-    int recipients_amount = 0;
     int i, k, j, msg_id, socketIndex;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
     char title[MAX_SUBJECT];
     char text[MAX_CONTENT];
+    char recipient[MAX_USERNAME];
 
-    char** recipients;
-    EmailContent* emailContent;
     Socket sockets[NUM_OF_CLIENTS];
     init_sockets(sockets);
 
@@ -165,7 +164,7 @@ int main(int argc, char* argv[])
                 {
                     msg_id = get_msg_id(commandParam, sockets[i].active_user_emails);
 
-                    if (msg_id != -1 && strcmp(sockets[i].user, emails[msg_id].to) == 0)
+                    if (msg_id != -1 && emails[msg_id].active && strcmp(sockets[i].user, emails[msg_id].to) == 0)
                     {
                         emails[msg_id].active = false;
                         strcpy(buffer, SUCCESS_MSG);
@@ -177,41 +176,8 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"COMPOSE")==0)
                 {
-                    if (curr_email >= MAXMAILS){
-                        strcpy(buffer, FAIL_MSG);
-                        if (sendall(sockets[i].fd, (char *)&buffer) == -1)
-                        {
-                            closeSocket(&sockets[i]);
-                        }
-                        continue;
-                    }
-
                     sscanf(commandParam, "%[^;];%[^;];%[^;]", recipients_string, title, text);
-                    recipients = ExtractRecipients(recipients_string, &recipients_amount);
-
-                    emailContent = (EmailContent*)malloc(sizeof(EmailContent));
-
-                    strcpy(emailContent->from, sockets[i].user);
-                    strcpy(emailContent->title, title);
-                    strcpy(emailContent->text, text);
-                    strcpy(emailContent->recipients_string, recipients_string);
-                    emailContent->recipients = recipients;
-
-                    // foreach recipient create new email instance
-                    for (j = 0; j < recipients_amount; j++)
-                    {
-                        curr_email++;
-                        strcpy(emails[curr_email].to, recipients[j]);
-                        emails[curr_email].content = emailContent;
-                        emails[curr_email].active = true;
-
-                        socketIndex = getSocketIndexByUser(recipients[j], sockets);
-                        if (socketIndex != -1)
-                        {
-                            sockets[socketIndex].active_user_emails[sockets[socketIndex].emailCount] = curr_email;
-                            sockets[socketIndex].emailCount++;
-                        }
-                    }
+                    composeEmail(buffer, sockets, i, recipients_string, title, text);
 
                     strcpy(buffer, SUCCESS_MSG);
                 }
@@ -219,6 +185,26 @@ int main(int argc, char* argv[])
                 {
                     closeSocket(&sockets[i]);
                     continue;
+                }
+                else if (strcmp(nextCommand,"MSG")==0)
+                {
+                    sscanf(commandParam, "%[^;];%[^;]", recipient, text);
+
+                    socketIndex = getSocketIndexByUser(recipient, sockets);
+                    if (socketIndex != -1)
+                    {
+                        strcpy(title,NEW_MSG_TITLE);
+                        composeEmail(buffer, sockets, i, recipient, title, text);
+                    }
+                    else
+                    {
+                        sprintf(buffer, "%s;%s", sockets[i].user, text);
+                        if (sendall(sockets[socketIndex].fd, (char *)&buffer) == -1)
+                        {
+                            closeSocket(&sockets[socketIndex]);
+                        }
+                    }
+                    strcpy(buffer, SUCCESS_MSG);
                 }
                 else
                 {
@@ -425,4 +411,50 @@ void closeSocket(Socket* socket)
 {
     socket->isActive = false;
     close(socket->fd);
+}
+
+int composeEmail(char* buffer, Socket* sockets, int i, char* recipients_string, char* title, char* text)
+{
+    EmailContent* emailContent;
+    int recipients_amount = 0;
+    char** recipients;
+    int j, socketIndex;
+
+    if (curr_email >= MAXMAILS){
+        strcpy(buffer, FAIL_MSG);
+        if (sendall(sockets[i].fd, (char *)&buffer) == -1)
+        {
+            closeSocket(&sockets[i]);
+        }
+        return -1;
+    }
+
+    recipients = ExtractRecipients(recipients_string, &recipients_amount);
+
+    emailContent = (EmailContent*)malloc(sizeof(EmailContent));
+
+    strcpy(emailContent->from, sockets[i].user);
+    strcpy(emailContent->title, title);
+    strcpy(emailContent->text, text);
+    strcpy(emailContent->recipients_string, recipients_string);
+    emailContent->recipients = recipients;
+
+    // foreach recipient create new email instance
+    for (j = 0; j < recipients_amount; j++)
+    {
+        curr_email++;
+        strcpy(emails[curr_email].to, recipients[j]);
+        emails[curr_email].content = emailContent;
+        emails[curr_email].active = true;
+
+        socketIndex = getSocketIndexByUser(recipients[j], sockets);
+        if (socketIndex != -1)
+        {
+            sockets[socketIndex].active_user_emails[sockets[socketIndex].emailCount] = curr_email;
+            sockets[socketIndex].emailCount++;
+        }
+    }
+
+    strcpy(buffer, SUCCESS_MSG);
+    return 0;
 }

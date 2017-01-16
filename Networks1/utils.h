@@ -12,6 +12,7 @@
 #define TO_TOTAL 20
 #define BUFFER_SIZE 5000
 #define GREETING "Winter is coming"
+#define NEW_MSG_TITLE "Message received offline"
 
 int sendall(int s, char *buf);
 int recvall(int s, char *buf);
