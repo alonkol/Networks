@@ -309,7 +309,7 @@ void handleChatMessage(char* buffer, int sock)
     char command[BUFFER_SIZE];
     char user[BUFFER_SIZE];
 
-    sscanf(buffer, command);
+    sscanf(buffer, "%s", command);
 
     if (strcmp(command, "MSG") == 0)
     {
