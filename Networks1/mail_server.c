@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
                             sprintf(buffer, "%s,%s", buffer, sockets[k].user);
                         }
                     }
-                    if (sendall(sockets[i].fd, (char *)&(buffer+1)) == -1)
+                    if (sendall(sockets[i].fd, (char *)(&buffer+1)) == -1)
                     {
                         closeSocket(&sockets[i]);
                         continue;
@@ -396,9 +396,9 @@ int getSocketIndexByUser(char* user, Socket* sockets){
 bool checkOnline(char* user, Socket* sockets){
     int index = getSocketIndexByUser(user, sockets);
     if (index == -1){
-        return false
+        return false;
     }
-    else return sockets[i].isAuth;
+    else return sockets[index].isAuth;
 }
 
 int getSocketIndexByFd(int fd, Socket* sockets){
