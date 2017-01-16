@@ -156,7 +156,6 @@ int main(int argc, char* argv[])
                         }
                     }
                     sprintf(buffer, "%s", users_string+1);
-                    printf("%s\n",buffer);
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {
@@ -193,12 +192,6 @@ int main(int argc, char* argv[])
 
                     strcpy(buffer, SUCCESS_MSG);
                 }
-                else if (strcmp(nextCommand,"QUIT")==0)
-                {
-                    sockets[i].isActive=false;
-                    closeSocket(&sockets[i]);
-                    continue;
-                }
                 else if (strcmp(nextCommand,"MSG")==0)
                 {
                     sscanf(commandParam, "%[^;];%[^\n]", recipient, text);
@@ -217,6 +210,12 @@ int main(int argc, char* argv[])
                         }
                         strcpy(buffer, SUCCESS_MSG);
                     }
+                }
+                else if (strcmp(nextCommand,"QUIT")==0)
+                {
+                    sockets[i].isActive=false;
+                    closeSocket(&sockets[i]);
+                    continue;
                 }
                 else
                 {
