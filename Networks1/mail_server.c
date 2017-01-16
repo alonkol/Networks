@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
     char buffer[BUFFER_SIZE];
     char nextCommand[BUFFER_SIZE], commandParam[BUFFER_SIZE];
     int recipients_amount = 0;
-    int i, k, j, msg_id;
+    int i, k, j, msg_id, socketIndex;
 
     char recipients_string[(MAX_USERNAME+1)*TO_TOTAL];
     char title[MAX_SUBJECT];
@@ -205,10 +205,11 @@ int main(int argc, char* argv[])
                         emails[curr_email].content = emailContent;
                         emails[curr_email].active = true;
 
-                        if (strcmp(sockets[i].user, recipients[j]) == 0)
+                        socketIndex = getSocketIndexByUser(recipients[j], sockets);
+                        if (socketIndex != -1)
                         {
-                            sockets[i].active_user_emails[sockets[i].emailCount] = curr_email;
-                            sockets[i].emailCount++;
+                            sockets[socketIndex].active_user_emails[sockets[socketIndex].emailCount] = curr_email;
+                            sockets[socketIndex].emailCount++;
                         }
                     }
 
@@ -367,19 +368,19 @@ int get_msg_id(char* commandParam, int* active_user_emails)
     return msg_id;
 }
 
-int getSocketByUser(char* user, Socket* sockets){
+int getSocketIndexByUser(char* user, Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
         if(sockets[i].isActive && sockets[i].isAuth){
             if (strcmp(user,sockets[i].user)==0){
-                return sockets[i].fd;
+                return i;
             }
         }
     }
     return -1;
 }
 
-int getSocketByFd(int fd, Socket* sockets){
+int getSocketIndexByFd(int fd, Socket* sockets){
     int i;
     for (i=0;i<NUM_OF_CLIENTS;i++){
         if(sockets[i].fd == fd){
