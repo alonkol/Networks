@@ -111,8 +111,8 @@ int main(int argc, char* argv[])
             {
                 break;
             }
-            printf("%s\n",buffer);
-            handleChatMessage(buffer, sock);
+            sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
+            printf("New message from %s: %s\n", user, msg);
         }
         // if user inserted something
         if (FD_ISSET(STDIN, &read_fds))
