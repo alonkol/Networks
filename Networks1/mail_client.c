@@ -98,6 +98,7 @@ int main(int argc, char* argv[])
 
     while(true)
     {
+        printf("Next iteration...\n");
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
         FD_SET(STDIN, &read_fds);
@@ -105,10 +106,12 @@ int main(int argc, char* argv[])
         // if got message from server
         if (FD_ISSET(sock, &read_fds))
         {
+            printf("Got message\n");
             if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
             }
+            printf("%s\n",buffer);
             handleChatMessage(buffer, sock);
         }
         // if user inserted something
