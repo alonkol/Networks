@@ -313,7 +313,7 @@ void handleChatMessage(char* buffer, int sock)
 
     if (strcmp(command, "MSG") == 0)
     {
-        sscanf(buffer,"%MSG %[^;];%[^\n]", user, msg);
+        sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
         printf("New message from %s: %s", user, msg);
     }
 
