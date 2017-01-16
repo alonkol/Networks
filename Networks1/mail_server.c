@@ -143,8 +143,24 @@ int main(int argc, char* argv[])
                             }
                         }
                     }
-
                     sprintf(buffer, "END");
+                }
+                else if (strcmp(nextCommand,"SHOW_ONLINE_USERS")==0)
+                {
+                    buffer[0]=0;
+                    for (k = 0; k < NUM_OF_CLIENTS; k++)
+                    {
+                        if (sockets[k].isActive && sockets[k].isAuth){
+                            sprintf(buffer, "%s,%s", buffer, sockets[k].user);
+                            printf("Added\n");
+                        }
+                    }
+                    printf("%s\n", (buffer+1));
+                    if (sendall(sockets[i].fd, (char *)(&buffer+1)) == -1)
+                    {
+                        closeSocket(&sockets[i]);
+                        continue;
+                    }
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {
@@ -183,6 +199,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
+                    sockets[i].isActive=false;
                     closeSocket(&sockets[i]);
                     continue;
                 }
@@ -364,6 +381,13 @@ int getSocketIndexByUser(char* user, Socket* sockets){
         }
     }
     return -1;
+}
+bool checkOnline(char* user, Socket* sockets){
+    int index = getSocketIndexByUser(user, sockets);
+    if (index == -1){
+        return false;
+    }
+    else return sockets[index].isAuth;
 }
 
 int getSocketIndexByFd(int fd, Socket* sockets){
