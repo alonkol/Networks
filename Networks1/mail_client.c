@@ -111,6 +111,7 @@ int main(int argc, char* argv[])
             {
                 break;
             }
+            printf("%s\n",buffer);
             sscanf(buffer,"MSG %[^;];%[^\n]", from, content);
             printf("New message from %s: %s\n", from, content);
         }
@@ -120,17 +121,13 @@ int main(int argc, char* argv[])
             scanf("%[^\n]s",buffer);
             getchar();
             sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
-            //for any command except COMPOSE and MSG send the message immediately (no need for more args)
-            if (strcmp(command,"COMPOSE")!=0 && strcmp(command,"MSG")!=0)
+
+            if (strcmp(command,"SHOW_INBOX")==0)
             {
                 if (sendall(sock, (char *)&buffer) == -1)
                 {
                     break;
                 }
-            }
-
-            if (strcmp(command,"SHOW_INBOX")==0)
-            {
                 if (recvall(sock, (char*)&buffer)==-1)
                 {
                     break;
@@ -154,6 +151,10 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command,"GET_MAIL")==0)
             {
+                if (sendall(sock, (char *)&buffer) == -1)
+                {
+                    break;
+                }
                 if (recvall(sock, (char*)&buffer)==-1)
                 {
                     break;
@@ -172,6 +173,10 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command,"DELETE_MAIL") == 0)
             {
+                if (sendall(sock, (char *)&buffer) == -1)
+                {
+                    break;
+                }
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
                     break;
@@ -213,6 +218,10 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command, "SHOW_ONLINE_USERS")==0)
             {
+                if (sendall(sock, (char *)&buffer) == -1)
+                {
+                    break;
+                }
                 if (recvall(sock, (char*)&buffer) == -1)
                 {
                     break;
@@ -244,6 +253,10 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command,"QUIT")==0)
             {
+                if (sendall(sock, (char *)&buffer) == -1)
+                {
+                    break;
+                }
                 break;
             }
             else
