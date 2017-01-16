@@ -274,3 +274,22 @@ int create_connection(char* hostname, char* portToConnect)
     return sock;
 }
 
+void handleChatMessage(char* buffer, int sock)
+{
+    char msg[BUFFER_SIZE];
+    char command[BUFFER_SIZE];
+    char user[BUFFER_SIZE];
+    sscanf(buffer,"%[^;];%[^;];%[^']",command, user, msg);
+
+    if (strcmp(command, "MSG") == 0)
+    {
+        printf("New message from %s: %s", user, msg);
+    }
+
+    if (recvall(sock, (char*)&buffer) == -1)
+    {
+        close(sock);
+        exit(-1);
+    }
+}
+
