@@ -327,7 +327,7 @@ void handleChatMessage(char* buffer, int sock)
 
     sscanf(buffer, "%s", command);
 
-    if (strcmp(command, "MSG") == 0)
+    while (strcmp(command, "MSG") == 0)
     {
         sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
         printf("New message from %s: %s", user, msg);
@@ -336,7 +336,7 @@ void handleChatMessage(char* buffer, int sock)
             close(sock);
             exit(-1);
         }
-        handleChatMessage(buffer, sock);
+        sscanf(buffer, "%s", command);
     }
 
 

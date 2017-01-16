@@ -155,6 +155,7 @@ int main(int argc, char* argv[])
                         }
                     }
                     sprintf(buffer, "%s", buffer+1);
+                    printf("%s\n",buffer);
                 }
                 else if (strcmp(nextCommand,"GET_MAIL")==0)
                 {
