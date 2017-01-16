@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
         getchar();
         sscanf(buffer, "%s",command); // get first word of command string (i.e COMPOSE, GET_MAIL)
         //for any command except COMPOSE send the message immediately (no need for more args)
-        if (strcmp(command,"COMPOSE")!=0){
+        if (strcmp(command,"COMPOSE")!=0 && strcmp(command,"MSG")!=0){
             if (sendall(sock, (char *)&buffer) == -1)
             {
                 break;
@@ -191,6 +191,17 @@ int main(int argc, char* argv[])
             printf("Online users: %s\n", buffer);
         }
         else if (strcmp(command, "MSG")==0){
+            scanf("%s: %[^\n]s", user, text);
+            getchar(); // ignore \n char
+            sprintf(buffer,"%s;%s", user,text);
+            if (sendall(sock, (char *)&buffer)==-1)
+            {
+                break;
+            }
+            if (recvall(sock, (char*)&buffer) == -1)
+            {
+                break;
+            }
             if (strcmp(buffer,FAIL_MSG)==0)
             {
                 printf("Error in sending message to user... \r\n");
