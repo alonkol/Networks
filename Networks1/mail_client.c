@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
             printf("Online users: %s\n", buffer);
         }
         else if (strcmp(command, "MSG")==0){
-            scanf("%s: %[^\n]s", user, content);
+            sscanf(buffer, "MSG %s: %[^\n]s", user, content);
             getchar(); // ignore \n char
             sprintf(buffer,"%s;%s", user, content);
             if (sendall(sock, (char *)&buffer)==-1)
