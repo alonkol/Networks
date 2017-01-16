@@ -221,7 +221,6 @@ int main(int argc, char* argv[])
             {
                 sscanf(buffer, "MSG %[^:]: %[^\n]", user, content);
                 sprintf(buffer,"MSG %s;%s", user, content);
-                printf("%s", buffer);
                 if (sendall(sock, (char *)&buffer)==-1)
                 {
                     break;
