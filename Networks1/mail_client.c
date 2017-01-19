@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include "utils.h"
 #include "mail_client.h"
-#define STDIN 0
 
 int main(int argc, char* argv[])
 {
@@ -84,6 +83,7 @@ int main(int argc, char* argv[])
         close(sock);
         return -1;
     }
+    handleChatMessage(buffer, sock);
 
     if (strcmp(buffer,FAIL_MSG)==0)
     {
@@ -98,15 +98,17 @@ int main(int argc, char* argv[])
 
     while(true)
     {
-        printf("Next iteration...\n");
         FD_ZERO(&read_fds);
         FD_SET(sock, &read_fds);
         FD_SET(STDIN, &read_fds);
-        select(sock+1, &read_fds, NULL, NULL, NULL);
+        if (select(sock+1, &read_fds, NULL, NULL, NULL) == -1)
+        {
+            printf("Error in select(): %s", strerror(errno));
+            break;
+        }
         // if got message from server
         if (FD_ISSET(sock, &read_fds))
         {
-            printf("Got message\n");
             if (recvall(sock, (char*)&buffer)==-1)
             {
                 break;
@@ -249,10 +251,8 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command,"QUIT")==0)
             {
-                if (sendall(sock, (char *)&buffer) == -1)
-                {
-                    break;
-                }
+                // no need to check sendall() return value since loop breaks anyway.
+                sendall(sock, (char *)&buffer);
                 break;
             }
             else
@@ -333,7 +333,5 @@ void handleChatMessage(char* buffer, int sock)
         }
         sscanf(buffer, "%s", command);
     }
-
-
 }
 

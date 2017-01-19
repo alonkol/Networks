@@ -11,8 +11,9 @@
 #define MAXMAILS 32000
 #define TO_TOTAL 20
 #define BUFFER_SIZE 5000
-#define GREETING "Winter is coming"
+#define GREETING "With fire and blood"
 #define NEW_MSG_TITLE "Message received offline"
+#define STDIN 0
 
 int sendall(int s, char *buf);
 int recvall(int s, char *buf);
