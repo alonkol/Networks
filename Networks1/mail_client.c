@@ -323,6 +323,7 @@ void handleChatMessage(char* buffer, int sock)
     char user[BUFFER_SIZE];
 
     sscanf(buffer, "%s", command);
+    printf("%s %s", buffer, command);
 
     while (strcmp(command, "MSG") == 0)
     {
@@ -334,6 +335,7 @@ void handleChatMessage(char* buffer, int sock)
             exit(-1);
         }
         sscanf(buffer, "%s", command);
+        printf("%s %s", buffer, command);
     }
 
 
