@@ -377,23 +377,6 @@ int getSocketIndexByUser(char* user, Socket* sockets){
     }
     return -1;
 }
-bool checkOnline(char* user, Socket* sockets){
-    int index = getSocketIndexByUser(user, sockets);
-    if (index == -1){
-        return false;
-    }
-    else return sockets[index].isAuth;
-}
-
-int getSocketIndexByFd(int fd, Socket* sockets){
-    int i;
-    for (i=0;i<NUM_OF_CLIENTS;i++){
-        if(sockets[i].fd == fd){
-            return i;
-        }
-    }
-    return -1;
-}
 
 int addNewSocket(int fd, Socket* sockets){
     int i;
