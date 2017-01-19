@@ -1,4 +1,4 @@
-#define BACKLOG 5
+#define BACKLOG 10
 #define DEFAULT_HOST "localhost"
 #define DEFAULT_PORT 6423
 #define SUCCESS_MSG "Success"

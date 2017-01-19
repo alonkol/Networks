@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"MSG")==0)
                 {
-                    sscanf(commandParam, "%[^;];%[^\n]", recipient, text);
+                    sscanf(commandParam, "%[^:]: %[^\n]", recipient, text);
                     socketIndex = getSocketIndexByUser(recipient, sockets);
                     if (socketIndex == -1)
                     {
@@ -203,6 +203,7 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
+
                         sprintf(buffer, "MSG %s;%s", sockets[i].user, text);
                         if (sendall(sockets[socketIndex].fd, (char *)&buffer) == -1)
                         {

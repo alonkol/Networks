@@ -230,8 +230,6 @@ int main(int argc, char* argv[])
             }
             else if (strcmp(command, "MSG")==0)
             {
-                sscanf(buffer, "MSG %[^:]: %[^\n]", user, content);
-                sprintf(buffer,"MSG %s;%s", user, content);
                 if (sendall(sock, (char *)&buffer)==-1)
                 {
                     break;
