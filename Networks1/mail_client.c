@@ -146,7 +146,6 @@ int main(int argc, char* argv[])
                 {
                     break;
                 }
-                printf("END OF SHOW INBOX\n");
             }
             else if (strcmp(command,"GET_MAIL")==0)
             {
@@ -262,7 +261,6 @@ int main(int argc, char* argv[])
             }
         }
     }
-    printf("I'm out");
     // closing connection
     safe_shutdown(sock, buffer);
 }
