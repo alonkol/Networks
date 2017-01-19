@@ -330,7 +330,7 @@ void handleChatMessage(char* buffer, int sock)
     {
         sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
         printf("New message from %s: %s\n", user, msg);
-        if (recvall(sock, (char*)&buffer) == -1)
+        if (recvall(sock, buffer) == -1)
         {
             close(sock);
             exit(-1);
