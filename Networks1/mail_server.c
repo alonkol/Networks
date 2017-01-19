@@ -203,7 +203,6 @@ int main(int argc, char* argv[])
                     }
                     else
                     {
-
                         sprintf(buffer, "MSG %s;%s", sockets[i].user, text);
                         if (sendall(sockets[socketIndex].fd, (char *)&buffer) == -1)
                         {
@@ -214,7 +213,6 @@ int main(int argc, char* argv[])
                 }
                 else if (strcmp(nextCommand,"QUIT")==0)
                 {
-                    sockets[i].isActive=false;
                     closeSocket(&sockets[i]);
                     continue;
                 }
