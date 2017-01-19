@@ -322,20 +322,22 @@ void handleChatMessage(char* buffer, int sock)
     char command[BUFFER_SIZE];
     char user[BUFFER_SIZE];
 
+    printf("%s\n", buffer);
     sscanf(buffer, "%s", command);
-    printf("%s %s", buffer, command);
+    printf("%s\n", command);
 
     while (strcmp(command, "MSG") == 0)
     {
         sscanf(buffer,"MSG %[^;];%[^\n]", user, msg);
-        printf("New message from %s: %s", user, msg);
+        printf("New message from %s: %s\n", user, msg);
         if (recvall(sock, (char*)&buffer) == -1)
         {
             close(sock);
             exit(-1);
         }
+        printf("%s\n", buffer);
         sscanf(buffer, "%s", command);
-        printf("%s %s", buffer, command);
+        printf("%s\n", command);
     }
 
 
